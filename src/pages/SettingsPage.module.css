@@ -1,0 +1,34 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 40px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  color: var(--accent);
+}
+
+.text {
+  color: #8a8aa0;
+}
+
+.button {
+  margin-top: 8px;
+  padding: 8px 24px;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

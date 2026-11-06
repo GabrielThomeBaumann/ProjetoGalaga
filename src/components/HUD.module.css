@@ -1,0 +1,25 @@
+.hud {
+  width: 800px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.exit {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 4px 12px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.exit:hover {
+  background: var(--danger);
+  color: #000;
+}

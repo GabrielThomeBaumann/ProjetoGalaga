@@ -1,0 +1,44 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.link {
+  color: var(--fg);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.link:hover {
+  border-color: var(--border);
+}
+
+.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+/* Sem navbar: o conteúdo (menu ou jogo) fica centralizado na altura da tela. */
+.mainCentered {
+  justify-content: center;
+}

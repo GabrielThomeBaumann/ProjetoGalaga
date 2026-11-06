@@ -1,0 +1,13 @@
+.wrapper {
+  position: relative;
+  width: 800px;
+  height: 600px;
+}
+
+.canvas {
+  display: block;
+  width: 800px;
+  height: 600px;
+  background: #000;
+  border: 1px solid var(--border);
+}
