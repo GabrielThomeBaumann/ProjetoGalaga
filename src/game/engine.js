@@ -2,6 +2,7 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   COLORS,
+  CHALLENGE_STAGE_FREQUENCY,
   ENEMY_BULLET_HEIGHT,
   ENEMY_BULLET_SPEED,
   ENEMY_BULLET_WIDTH,
@@ -36,8 +37,12 @@ import { createBullet, createEnemy, createPlayer } from './entities';
 
 /* ----------------------------- Criação ----------------------------- */
 
-function createEnemies() {
+function createEnemies(isChallengeStage) {
   const enemies = [];
+  
+  // O Challenge Stage fica vazio por enquanto (você adicionará os inimigos em círculo depois)
+  if (isChallengeStage) return enemies;
+
   const gridWidth = ENEMY_COLS * ENEMY_WIDTH + (ENEMY_COLS - 1) * ENEMY_GAP_X;
   const startX = (CANVAS_WIDTH - gridWidth) / 2;
 
@@ -57,9 +62,13 @@ function createEnemies() {
 }
 
 /** @returns {GameState} */
-export function createInitialState() {
+export function createInitialState(stage = 1) {
+  const isChallengeStage = stage > 1 && stage % CHALLENGE_STAGE_FREQUENCY === 0;
+
   return {
     status: 'playing',
+    stage,
+    isChallengeStage,
     player: createPlayer({
       x: (CANVAS_WIDTH - PLAYER_WIDTH) / 2,
       y: CANVAS_HEIGHT - PLAYER_HEIGHT - PLAYER_Y_MARGIN,
@@ -67,7 +76,7 @@ export function createInitialState() {
       height: PLAYER_HEIGHT,
       lives: PLAYER_LIVES,
     }),
-    enemies: createEnemies(),
+    enemies: createEnemies(isChallengeStage),
     bullets: [],
     score: 0,
     time: 0,
@@ -77,11 +86,6 @@ export function createInitialState() {
 
 /* ----------------------------- Utilidades ----------------------------- */
 
-/**
- * Colisão AABB.
- * @param {Rect} a
- * @param {Rect} b
- */
 export function intersects(a, b) {
   return (
     a.x < b.x + b.width &&
@@ -95,32 +99,18 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-/**
- * @param {GameState} state
- * @returns {HudSnapshot}
- */
 export function toHudSnapshot(state) {
   return {
     score: state.score,
     lives: state.player.lives,
     status: state.status,
+    stage: state.stage,
+    isChallengeStage: state.isChallengeStage,
   };
 }
 
 /* ----------------------------- Update ----------------------------- */
 
-/**
- * Avança o estado em `dtMs` milissegundos. Muta o estado recebido (evita
- * alocação por frame) e o retorna. `nowMs` é o relógio do loop, usado para
- * o cooldown do tiro. `random` é injetável para facilitar testes futuros.
- *
- * @param {GameState} state
- * @param {InputState} input
- * @param {number} dtMs
- * @param {number} nowMs
- * @param {() => number} [random]
- * @returns {GameState}
- */
 export function update(state, input, dtMs, nowMs, random = Math.random) {
   if (state.status !== 'playing') return state;
 
@@ -129,7 +119,11 @@ export function update(state, input, dtMs, nowMs, random = Math.random) {
 
   updatePlayer(state, input, dt, nowMs);
   updateEnemies(state, dt);
-  updateEnemyShooting(state, dtMs, random);
+  
+  if (!state.isChallengeStage) {
+    updateEnemyShooting(state, dtMs, random);
+  }
+  
   updateBullets(state, dt);
   resolveCollisions(state);
   cleanup(state);
@@ -166,7 +160,6 @@ function updateEnemies(state, dt) {
   for (const enemy of state.enemies) {
     if (!enemy.active) continue;
     
-    // X é derivado do tempo acumulado (não acumulado por frame).
     enemy.x =
       enemy.baseX +
       Math.sin(state.time * ENEMY_SWAY_FREQUENCY + enemy.phase) *
@@ -174,9 +167,8 @@ function updateEnemies(state, dt) {
         
     enemy.y += ENEMY_DESCENT_SPEED * dt;
 
-    // NOVA LÓGICA: Se o inimigo passar do limite inferior, ele volta para o topo.
     if (enemy.y > CANVAS_HEIGHT) {
-      enemy.y = -enemy.height; // Posiciona ele acima da tela visível
+      enemy.y = -enemy.height; 
     }
   }
 }
@@ -250,22 +242,36 @@ function cleanup(state) {
 function updateStatus(state) {
   if (state.player.lives <= 0) {
     state.status = 'lost';
-  } else if (state.enemies.length === 0) {
-    state.status = 'won';
+    return;
+  }
+
+  // Se for um Challenge Stage e não houver inimigos, esperamos 3 segundos 
+  // (usando o state.time que já conta o tempo) antes de avançar para a próxima.
+  if (state.isChallengeStage && state.enemies.length === 0) {
+    if (state.time > 3) {
+      state.stage += 1;
+      state.isChallengeStage = state.stage % CHALLENGE_STAGE_FREQUENCY === 0;
+      state.time = 0;
+      state.enemies = createEnemies(state.isChallengeStage);
+    }
+    return; // Impede que o código pule a fase imediatamente
+  }
+  
+  // Se for uma fase normal e os inimigos acabaram, avança para a próxima
+  if (!state.isChallengeStage && state.enemies.length === 0) {
+    state.stage += 1;
+    state.isChallengeStage = state.stage % CHALLENGE_STAGE_FREQUENCY === 0;
+    state.time = 0; 
+    state.enemies = createEnemies(state.isChallengeStage);
   }
 }
 
 /* ----------------------------- Render ----------------------------- */
 
-/**
- * @param {CanvasRenderingContext2D} ctx
- * @param {GameState} state
- */
 export function render(ctx, state) {
   ctx.fillStyle = COLORS.background;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Jogador (triângulo apontando para cima)
   const p = state.player;
   ctx.fillStyle = COLORS.player;
   ctx.beginPath();
@@ -275,7 +281,6 @@ export function render(ctx, state) {
   ctx.closePath();
   ctx.fill();
 
-  // Inimigos (triângulo invertido)
   ctx.fillStyle = COLORS.enemy;
   for (const e of state.enemies) {
     ctx.beginPath();
@@ -286,7 +291,6 @@ export function render(ctx, state) {
     ctx.fill();
   }
 
-  // Projéteis
   for (const b of state.bullets) {
     ctx.fillStyle =
       b.owner === 'player' ? COLORS.playerBullet : COLORS.enemyBullet;

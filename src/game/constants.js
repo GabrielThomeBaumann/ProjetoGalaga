@@ -15,7 +15,7 @@ export const PLAYER_HEIGHT = 30;
 export const PLAYER_SPEED = 320; // px/s
 export const PLAYER_Y_MARGIN = 20;
 export const PLAYER_LIVES = 3;
-export const PLAYER_SHOOT_COOLDOWN_MS = 500;
+export const PLAYER_SHOOT_COOLDOWN_MS = 500; // Alterado para 0.5s
 
 // Projéteis
 export const PLAYER_BULLET_WIDTH = 4;
@@ -38,3 +38,6 @@ export const ENEMY_SWAY_AMPLITUDE = 70; // px
 export const ENEMY_SWAY_FREQUENCY = 1.2; // rad/s
 export const ENEMY_SHOOT_INTERVAL_MS = 1200;
 export const ENEMY_KILL_SCORE = 10;
+
+// Controle de Fases
+export const CHALLENGE_STAGE_FREQUENCY = 3; // A cada 3 fases, uma é Challenge

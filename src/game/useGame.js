@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { createInitialState, render, toHudSnapshot, update } from './engine';
 import { createInput } from './entities';
 
-const MAX_DT_MS = 50; // evita "saltos" ao voltar de outra aba
+const MAX_DT_MS = 50; 
 
 function keyToAction(code) {
   switch (code) {
@@ -14,16 +14,13 @@ function keyToAction(code) {
       return 'right';
     case 'Space':
       return 'shoot';
+    case 'Escape':
+      return 'pause'; 
     default:
       return null;
   }
 }
 
-/**
- * Inicializa o loop do jogo no canvas e expõe `restart`.
- *
- * @param {{ onHudChange: (snapshot: import('./entities').HudSnapshot) => void }} options
- */
 export function useGame({ onHudChange }) {
   const canvasRef = useRef(null);
   const stateRef = useRef(null);
@@ -34,7 +31,6 @@ export function useGame({ onHudChange }) {
     stateRef.current = createInitialState();
   }
 
-  // Mantém o callback mais recente sem recriar o loop.
   const onHudChangeRef = useRef(onHudChange);
   useEffect(() => {
     onHudChangeRef.current = onHudChange;
@@ -47,7 +43,9 @@ export function useGame({ onHudChange }) {
       !prev ||
       prev.score !== next.score ||
       prev.lives !== next.lives ||
-      prev.status !== next.status
+      prev.status !== next.status ||
+      prev.stage !== next.stage ||
+      prev.isChallengeStage !== next.isChallengeStage
     ) {
       lastHudRef.current = next;
       onHudChangeRef.current(next);
@@ -55,8 +53,19 @@ export function useGame({ onHudChange }) {
   }, []);
 
   const restart = useCallback(() => {
-    stateRef.current = createInitialState();
+    stateRef.current = createInitialState(1);
     inputRef.current = createInput();
+    lastHudRef.current = null; // Força atualização
+    pushHudIfChanged();
+  }, [pushHudIfChanged]);
+
+  const togglePause = useCallback(() => {
+    const state = stateRef.current;
+    if (state.status === 'playing') {
+      state.status = 'paused';
+    } else if (state.status === 'paused') {
+      state.status = 'playing';
+    }
     pushHudIfChanged();
   }, [pushHudIfChanged]);
 
@@ -66,18 +75,32 @@ export function useGame({ onHudChange }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
 
-    // Teclado global
     const handleKeyDown = (e) => {
       const action = keyToAction(e.code);
       if (!action) return;
-      e.preventDefault(); // evita rolagem da página com Espaço/setas
+      e.preventDefault(); 
+
+      if (action === 'pause') {
+        if (e.repeat) return;
+        const state = stateRef.current;
+        if (state.status === 'playing') {
+          state.status = 'paused';
+        } else if (state.status === 'paused') {
+          state.status = 'playing';
+        }
+        pushHudIfChanged();
+        return;
+      }
+
       inputRef.current[action] = true;
     };
+    
     const handleKeyUp = (e) => {
       const action = keyToAction(e.code);
       if (!action) return;
       inputRef.current[action] = false;
     };
+    
     const handleBlur = () => {
       inputRef.current = createInput();
     };
@@ -86,7 +109,6 @@ export function useGame({ onHudChange }) {
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('blur', handleBlur);
 
-    // Loop com delta time
     let rafId = 0;
     let lastTime = null;
 
@@ -112,5 +134,5 @@ export function useGame({ onHudChange }) {
     };
   }, [pushHudIfChanged]);
 
-  return { canvasRef, restart };
+  return { canvasRef, restart, togglePause };
 }

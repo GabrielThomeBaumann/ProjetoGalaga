@@ -8,31 +8,30 @@
 
 /**
  * @typedef {Rect & { lives: number, lastShotAt: number }} Player
- * lastShotAt: timestamp (ms) do último tiro.
  */
 
 /**
  * @typedef {Rect & { active: boolean, baseX: number, phase: number }} Enemy
- * baseX: centro do movimento senoidal; phase: defasagem do seno.
  */
 
 /**
  * @typedef {Rect & { active: boolean, vy: number, owner: 'player' | 'enemy' }} Bullet
- * vy em px/s (negativo = sobe).
  */
 
 /**
- * @typedef {'playing' | 'won' | 'lost'} GameStatus
+ * @typedef {'playing' | 'paused' | 'won' | 'lost'} GameStatus
  */
 
 /**
  * @typedef {Object} GameState
  * @property {GameStatus} status
+ * @property {number} stage
+ * @property {boolean} isChallengeStage
  * @property {Player} player
  * @property {Enemy[]} enemies
  * @property {Bullet[]} bullets
  * @property {number} score
- * @property {number} time  Tempo de jogo em segundos (só avança em 'playing').
+ * @property {number} time
  * @property {number} enemyShootTimerMs
  */
 
@@ -48,6 +47,8 @@
  * @property {number} score
  * @property {number} lives
  * @property {GameStatus} status
+ * @property {number} stage
+ * @property {boolean} isChallengeStage
  */
 
 /** @returns {InputState} */
