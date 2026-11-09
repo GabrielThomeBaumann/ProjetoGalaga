@@ -4,6 +4,7 @@ import GameCanvas from '../components/GameCanvas';
 import HUD from '../components/HUD';
 import StarfieldBackground from '../components/StarfieldBackground';
 import { PLAYER_LIVES } from '../game/constants';
+import { getHighScore, saveHighScore } from '../game/highScore';
 import { useGame } from '../game/useGame';
 import styles from './GamePage.module.css';
 
@@ -19,6 +20,10 @@ export default function GamePage() {
   const navigate = useNavigate();
   const [hud, setHud] = useState(INITIAL_HUD);
   const [showMessage, setShowMessage] = useState(true);
+  const [storedHighScore] = useState(getHighScore);
+
+  // Se o jogador passa o recorde, ele sobe junto com a pontuação (como no original).
+  const highScore = Math.max(storedHighScore, hud.score);
 
   const handleHudChange = useCallback((snapshot) => {
     setHud(snapshot);
@@ -31,10 +36,15 @@ export default function GamePage() {
       setShowMessage(true);
       const timer = setTimeout(() => {
         setShowMessage(false);
-      }, 2500); 
+      }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [hud.stage, hud.status]); 
+  }, [hud.stage, hud.status]);
+
+  // Fim de jogo: ponto de entrada para salvar a pontuação no futuro.
+  useEffect(() => {
+    if (hud.status === 'lost') saveHighScore(hud.score);
+  }, [hud.status, hud.score]);
 
   let overlay = null;
 
@@ -69,30 +79,33 @@ export default function GamePage() {
       {/* Mesmo fundo de estrelas da tela inicial */}
       <StarfieldBackground />
 
-      <HUD
-        score={hud.score}
-        lives={hud.lives}
-        stage={hud.stage}
-        onExit={() => navigate('/')} 
-      />
-      
-      <GameCanvas 
-        ref={canvasRef} 
-        overlay={
-          <>
-            {overlay}
-            {/* Mensagem flutuante que some sozinha */}
-            {showMessage && hud.status === 'playing' && (
-              <div className={styles.stageMessage}>
-                <h1 className={styles.stageText}>
-                  {hud.isChallengeStage ? 'CHALLENGE STAGE' : `STAGE ${hud.stage}`}
-                </h1>
-              </div>
-            )}
-          </>
-        } 
-      />
-      
+      <div className={styles.layout}>
+        <GameCanvas
+          ref={canvasRef}
+          overlay={
+            <>
+              {overlay}
+              {/* Mensagem flutuante que some sozinha */}
+              {showMessage && hud.status === 'playing' && (
+                <div className={styles.stageMessage}>
+                  <h1 className={styles.stageText}>
+                    {hud.isChallengeStage ? 'CHALLENGE STAGE' : `STAGE ${hud.stage}`}
+                  </h1>
+                </div>
+              )}
+            </>
+          }
+        />
+
+        {/* Painel lateral: recorde, pontuação e vidas */}
+        <HUD
+          score={hud.score}
+          highScore={highScore}
+          lives={hud.lives}
+          onExit={() => navigate('/')}
+        />
+      </div>
+
       <p className={styles.help}>← → / A D: mover · Espaço: atirar · ESC: Pausar</p>
     </section>
   );

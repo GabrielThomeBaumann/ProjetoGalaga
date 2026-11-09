@@ -305,9 +305,17 @@ export function render(ctx, state) {
     }
   }
 
+  // Tiros (usa a imagem de cada dono se existir; senão, o retângulo colorido).
+  const playerBulletSprite = getSprite('player-bullet');
+  const enemyBulletSprite = getSprite('enemy-bullet');
   for (const b of state.bullets) {
-    ctx.fillStyle =
-      b.owner === 'player' ? COLORS.playerBullet : COLORS.enemyBullet;
-    ctx.fillRect(b.x, b.y, b.width, b.height);
+    const isPlayer = b.owner === 'player';
+    const sprite = isPlayer ? playerBulletSprite : enemyBulletSprite;
+    if (sprite) {
+      ctx.drawImage(sprite, b.x, b.y, b.width, b.height);
+    } else {
+      ctx.fillStyle = isPlayer ? COLORS.playerBullet : COLORS.enemyBullet;
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
   }
 }

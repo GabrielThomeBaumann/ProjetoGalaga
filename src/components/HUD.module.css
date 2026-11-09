@@ -1,20 +1,63 @@
+/* Painel lateral, no estilo do Galaga original. A fonte vem do .page do jogo. */
 .hud {
-  width: 800px;
+  --hud-red: #ff3d1f;
+
+  width: 220px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--panel);
+  flex-direction: column;
+  gap: 36px;
+  padding: 24px 20px;
   border: 1px solid var(--border);
-  border-bottom: none;
-  font-size: 12px; /* a fonte vem do .page do jogo (Press Start 2P) */
+  border-left: none;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: var(--hud-red);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.value {
+  margin-top: 8px;
+  color: #fff;
+  font-size: 16px;
+  text-align: right;
+}
+
+/* Vidas: uma nave por vida */
+.lives {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lifeIcon {
+  width: 36px;
+  height: 27px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Aparece só se a imagem da nave não existir */
+.lifeFallback {
+  width: 36px;
+  height: 27px;
+  background: var(--accent);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
 .exit {
+  margin-top: auto;
   background: transparent;
   color: var(--danger);
   border: 1px solid var(--danger);
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
