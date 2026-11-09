@@ -3,18 +3,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-bottom: none;
+  font-size: 12px; /* a fonte vem do .page do jogo (Press Start 2P) */
 }
 
 .exit {
   background: transparent;
   color: var(--danger);
   border: 1px solid var(--danger);
-  padding: 4px 12px;
+  padding: 6px 12px;
   font-family: inherit;
+  font-size: 11px;
   cursor: pointer;
   border-radius: 4px;
 }

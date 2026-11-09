@@ -10,8 +10,8 @@ export const COLORS = {
 };
 
 // Jogador
-export const PLAYER_WIDTH = 40;
-export const PLAYER_HEIGHT = 30;
+export const PLAYER_WIDTH = 50;
+export const PLAYER_HEIGHT = 40;
 export const PLAYER_SPEED = 320; // px/s
 export const PLAYER_Y_MARGIN = 20;
 export const PLAYER_LIVES = 3;
@@ -28,8 +28,8 @@ export const ENEMY_BULLET_SPEED = 240; // px/s (para baixo)
 // Inimigos
 export const ENEMY_COLS = 5;
 export const ENEMY_ROWS = 4;
-export const ENEMY_WIDTH = 36;
-export const ENEMY_HEIGHT = 28;
+export const ENEMY_WIDTH = 40;
+export const ENEMY_HEIGHT = 32;
 export const ENEMY_GAP_X = 60;
 export const ENEMY_GAP_Y = 20;
 export const ENEMY_START_Y = 50;

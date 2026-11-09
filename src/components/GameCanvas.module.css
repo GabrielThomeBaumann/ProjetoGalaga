@@ -4,10 +4,11 @@
   height: 600px;
 }
 
+/* Transparente: o fundo de estrelas (StarfieldBackground) aparece atrás. */
 .canvas {
   display: block;
   width: 800px;
   height: 600px;
-  background: #000;
+  background: transparent;
   border: 1px solid var(--border);
 }

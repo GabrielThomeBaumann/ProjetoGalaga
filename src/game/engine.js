@@ -29,6 +29,7 @@ import {
   PLAYER_Y_MARGIN,
 } from './constants';
 import { createBullet, createEnemy, createPlayer } from './entities';
+import { getSprite } from './sprites';
 
 /** @typedef {import('./entities').GameState} GameState */
 /** @typedef {import('./entities').InputState} InputState */
@@ -269,26 +270,39 @@ function updateStatus(state) {
 /* ----------------------------- Render ----------------------------- */
 
 export function render(ctx, state) {
-  ctx.fillStyle = COLORS.background;
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  // O canvas é transparente: o fundo de estrelas aparece por trás do jogo.
+  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.imageSmoothingEnabled = false; // mantém o visual pixelado
 
+  // Nave do jogador (usa a imagem se existir; senão, o triângulo).
   const p = state.player;
-  ctx.fillStyle = COLORS.player;
-  ctx.beginPath();
-  ctx.moveTo(p.x + p.width / 2, p.y);
-  ctx.lineTo(p.x + p.width, p.y + p.height);
-  ctx.lineTo(p.x, p.y + p.height);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = COLORS.enemy;
-  for (const e of state.enemies) {
+  const playerSprite = getSprite('player');
+  if (playerSprite) {
+    ctx.drawImage(playerSprite, p.x, p.y, p.width, p.height);
+  } else {
+    ctx.fillStyle = COLORS.player;
     ctx.beginPath();
-    ctx.moveTo(e.x, e.y);
-    ctx.lineTo(e.x + e.width, e.y);
-    ctx.lineTo(e.x + e.width / 2, e.y + e.height);
+    ctx.moveTo(p.x + p.width / 2, p.y);
+    ctx.lineTo(p.x + p.width, p.y + p.height);
+    ctx.lineTo(p.x, p.y + p.height);
     ctx.closePath();
     ctx.fill();
+  }
+
+  // Inimigos (usa a imagem se existir; senão, o triângulo).
+  const enemySprite = getSprite('enemy');
+  ctx.fillStyle = COLORS.enemy;
+  for (const e of state.enemies) {
+    if (enemySprite) {
+      ctx.drawImage(enemySprite, e.x, e.y, e.width, e.height);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(e.x, e.y);
+      ctx.lineTo(e.x + e.width, e.y);
+      ctx.lineTo(e.x + e.width / 2, e.y + e.height);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
   for (const b of state.bullets) {

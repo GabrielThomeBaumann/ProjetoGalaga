@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCanvas from '../components/GameCanvas';
 import HUD from '../components/HUD';
+import StarfieldBackground from '../components/StarfieldBackground';
 import { PLAYER_LIVES } from '../game/constants';
 import { useGame } from '../game/useGame';
 import styles from './GamePage.module.css';
@@ -65,6 +66,9 @@ export default function GamePage() {
 
   return (
     <section className={styles.page}>
+      {/* Mesmo fundo de estrelas da tela inicial */}
+      <StarfieldBackground />
+
       <HUD
         score={hud.score}
         lives={hud.lives}
