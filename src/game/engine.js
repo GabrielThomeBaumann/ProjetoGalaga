@@ -22,6 +22,8 @@ import {
   PLAYER_BULLET_SPEED,
   PLAYER_BULLET_WIDTH,
   PLAYER_HEIGHT,
+  PLAYER_HITBOX_HEIGHT,
+  PLAYER_HITBOX_WIDTH,
   PLAYER_LIVES,
   PLAYER_SHOOT_COOLDOWN_MS,
   PLAYER_SPEED,
@@ -98,6 +100,17 @@ export function intersects(a, b) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+// Hitbox do jogador: menor que o sprite e centralizada nele.
+// Usada somente nas colisões; o desenho continua com o tamanho original.
+function getPlayerHitbox(player) {
+  return {
+    x: player.x + (player.width - PLAYER_HITBOX_WIDTH) / 2,
+    y: player.y + (player.height - PLAYER_HITBOX_HEIGHT) / 2,
+    width: PLAYER_HITBOX_WIDTH,
+    height: PLAYER_HITBOX_HEIGHT,
+  };
 }
 
 export function toHudSnapshot(state) {
@@ -206,6 +219,7 @@ function updateBullets(state, dt) {
 
 function resolveCollisions(state) {
   const { player } = state;
+  const hitbox = getPlayerHitbox(player);
 
   for (const bullet of state.bullets) {
     if (!bullet.active) continue;
@@ -219,14 +233,14 @@ function resolveCollisions(state) {
           break;
         }
       }
-    } else if (intersects(bullet, player)) {
+    } else if (intersects(bullet, hitbox)) {
       bullet.active = false;
       player.lives -= 1;
     }
   }
 
   for (const enemy of state.enemies) {
-    if (enemy.active && intersects(enemy, player)) {
+    if (enemy.active && intersects(enemy, hitbox)) {
       enemy.active = false;
       player.lives -= 1;
     }
