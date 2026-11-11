@@ -15,7 +15,9 @@ export const PLAYER_HEIGHT = 36;
 export const PLAYER_SPEED = 320; // px/s
 export const PLAYER_Y_MARGIN = 20;
 export const PLAYER_LIVES = 3;
-export const PLAYER_SHOOT_COOLDOWN_MS = 400; 
+export const PLAYER_SHOOT_COOLDOWN_MS = 400;
+export const PLAYER_HITBOX_WIDTH = 40;
+export const PLAYER_HITBOX_HEIGHT = 30; 
 
 // Projéteis
 export const PLAYER_BULLET_WIDTH = 10;
@@ -27,7 +29,7 @@ export const ENEMY_BULLET_SPEED = 240; // px/s (para baixo)
 
 // Inimigos
 export const ENEMY_COLS = 5;
-export const ENEMY_ROWS = 8;
+export const ENEMY_ROWS = 4;
 export const ENEMY_WIDTH = 40;
 export const ENEMY_HEIGHT = 32;
 export const ENEMY_GAP_X = 60;
