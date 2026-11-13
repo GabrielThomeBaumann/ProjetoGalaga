@@ -6,7 +6,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: var(--bg);
   overflow: hidden;
 }
 
@@ -54,7 +54,7 @@
   background: none;
   border: none;
   border-radius: 0;
-  color: #fff;
+  color: var(--fg);
   font-family: 'Press Start 2P', 'Courier New', monospace;
   font-size: clamp(16px, 2.6vw, 22px);
   letter-spacing: 0.06em;
@@ -68,11 +68,11 @@
   outline: none; /* a seta já indica a seleção */
 }
 
-/* Seta branca em pixel art ("▶"), visível só no item selecionado. */
+/* Seta em pixel art ("▶"), visível só no item selecionado. */
 .arrow {
   width: 18px;
   height: 18px;
-  background: #fff;
+  background: var(--fg);
   clip-path: polygon(0 0, 55% 0, 55% 18%, 78% 18%, 78% 36%, 100% 36%,
     100% 64%, 78% 64%, 78% 82%, 55% 82%, 55% 100%, 0 100%);
   visibility: hidden;

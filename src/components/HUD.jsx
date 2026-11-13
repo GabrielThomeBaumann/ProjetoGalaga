@@ -24,7 +24,7 @@ function LifeIcon() {
   );
 }
 
-export default function HUD({ score, highScore, lives, onExit }) {
+export default function HUD({ score, highScore, lives }) {
   return (
     <aside className={styles.hud}>
       <div className={styles.block}>
@@ -43,10 +43,6 @@ export default function HUD({ score, highScore, lives, onExit }) {
           <LifeIcon key={i} />
         ))}
       </div>
-
-      <button type="button" className={styles.exit} onClick={onExit}>
-        Sair
-      </button>
     </aside>
   );
 }

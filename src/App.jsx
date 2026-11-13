@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import styles from './styles/App.module.css';
 
 // Rotas em que a navegação é feita por botões (menu e HUD), sem navbar.
-const ROUTES_WITHOUT_NAVBAR = ['/', '/game'];
+const ROUTES_WITHOUT_NAVBAR = ['/', '/game', '/settings'];
 
 function linkClass({ isActive }) {
   return isActive ? `${styles.link} ${styles.active}` : styles.link;
@@ -27,6 +27,9 @@ export default function App() {
           </NavLink>
           <NavLink to="/leaderboard" className={linkClass}>
             Leaderboard
+          </NavLink>
+          <NavLink to="/achievements" className={linkClass}>
+            Conquistas
           </NavLink>
           <NavLink to="/settings" className={linkClass}>
             Configurações

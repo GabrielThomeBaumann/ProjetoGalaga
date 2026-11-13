@@ -98,12 +98,7 @@ export default function GamePage() {
         />
 
         {/* Painel lateral: recorde, pontuação e vidas */}
-        <HUD
-          score={hud.score}
-          highScore={highScore}
-          lives={hud.lives}
-          onExit={() => navigate('/')}
-        />
+        <HUD score={hud.score} highScore={highScore} lives={hud.lives} />
       </div>
 
       <p className={styles.help}>← → / A D: mover · Espaço: atirar · ESC: Pausar</p>

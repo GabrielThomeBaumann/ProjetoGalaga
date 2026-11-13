@@ -25,7 +25,7 @@
 
 .value {
   margin-top: 8px;
-  color: #fff;
+  color: var(--fg);
   font-size: 16px;
   text-align: right;
 }
@@ -50,21 +50,4 @@
   height: 27px;
   background: var(--accent);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-
-.exit {
-  margin-top: auto;
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  padding: 8px 12px;
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.exit:hover {
-  background: var(--danger);
-  color: #000;
 }

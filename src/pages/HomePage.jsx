@@ -6,6 +6,7 @@ import styles from './HomePage.module.css';
 const MENU_ITEMS = [
   { label: 'Start', to: '/game' },
   { label: 'Leaderboard', to: '/leaderboard' },
+  { label: 'Conquistas', to: '/achievements' },
   { label: 'Login', to: '/login' },
   { label: 'Configurações', to: '/settings' },
 ];

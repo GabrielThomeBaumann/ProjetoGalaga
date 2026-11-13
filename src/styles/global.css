@@ -5,6 +5,25 @@
   --danger: #ff5252;
   --panel: #12121c;
   --border: #2a2a3c;
+  --muted: #8a8aa0;
+  --overlay-bg: rgba(0, 0, 0, 0.75);
+  --input-bg: #000;
+  --on-accent: #000;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f2f2f8;
+  --fg: #14141f;
+  --accent: #00838f;
+  --danger: #c62828;
+  --panel: #ffffff;
+  --border: #c5c5d6;
+  --muted: #5a5a70;
+  --overlay-bg: rgba(255, 255, 255, 0.85);
+  --input-bg: #ffffff;
+  --on-accent: #ffffff;
+  color-scheme: light;
 }
 
 *,

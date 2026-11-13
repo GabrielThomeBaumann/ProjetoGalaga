@@ -27,7 +27,7 @@
 
 .input {
   padding: 8px;
-  background: #000;
+  background: var(--input-bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -47,7 +47,7 @@
   margin-top: 16px;
   padding: 8px;
   background: var(--accent);
-  color: #000;
+  color: var(--on-accent);
   border: none;
   border-radius: 4px;
   font-family: inherit;
