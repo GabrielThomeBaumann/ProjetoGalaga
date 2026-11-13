@@ -1,8 +1,25 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { createInitialState, render, toHudSnapshot, update } from './engine';
 import { createInput } from './entities';
+import { playSound } from './sounds';
 
 const MAX_DT_MS = 50; 
+
+// Evento do engine -> nome do arquivo de som.
+const EVENT_SOUNDS = {
+  gameStart: 'game-start',
+  enemyKill: 'enemy-kill',
+  death: 'death',
+};
+
+// Toca os sons dos eventos do frame e esvazia a fila.
+function flushEvents(state) {
+  for (const event of state.events) {
+    const sound = EVENT_SOUNDS[event];
+    if (sound) playSound(sound);
+  }
+  state.events.length = 0;
+}
 
 function keyToAction(code) {
   switch (code) {
@@ -116,8 +133,10 @@ export function useGame({ onHudChange }) {
       const dtMs = lastTime === null ? 0 : Math.min(now - lastTime, MAX_DT_MS);
       lastTime = now;
 
-      update(stateRef.current, inputRef.current, dtMs, now);
-      render(ctx, stateRef.current);
+      const state = stateRef.current;
+      update(state, inputRef.current, dtMs, now);
+      render(ctx, state);
+      flushEvents(state);
       pushHudIfChanged();
 
       rafId = requestAnimationFrame(frame);

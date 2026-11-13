@@ -86,3 +86,22 @@
   background: var(--accent);
   border-color: var(--accent);
 }
+
+/* Barra de volume em blocos, estilo pixel */
+.bar {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.block {
+  width: 12px;
+  height: 20px;
+  border: 2px solid var(--fg);
+  cursor: pointer;
+}
+
+.block[data-on='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+}

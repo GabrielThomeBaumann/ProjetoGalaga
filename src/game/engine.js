@@ -112,6 +112,8 @@ export function createInitialState(stage = 1) {
     score: 0,
     time: 0,
     enemyShootTimerMs: 0,
+    // Fila de eventos do frame (sons). O som de início só vale para a fase 1.
+    events: stage === 1 ? ['gameStart'] : [],
   };
 }
 
@@ -289,6 +291,7 @@ function resolveCollisions(state) {
           bullet.active = false;
           enemy.active = false;
           state.score += ENEMY_KILL_SCORE;
+          state.events.push('enemyKill');
           break;
         }
       }
@@ -316,6 +319,7 @@ function cleanup(state) {
 function updateStatus(state) {
   if (state.player.lives <= 0) {
     state.status = 'lost';
+    state.events.push('death'); // só quando perde de fato
     return;
   }
 

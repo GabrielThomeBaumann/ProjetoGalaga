@@ -44,6 +44,7 @@
  * @property {number} score
  * @property {number} time
  * @property {number} enemyShootTimerMs
+ * @property {string[]} events Eventos do frame (consumidos por useGame para tocar sons)
  */
 
 /**
