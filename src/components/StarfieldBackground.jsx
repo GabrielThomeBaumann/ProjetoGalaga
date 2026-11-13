@@ -13,17 +13,21 @@ const DARK_COLORS = [
   '#2979ff',
 ];
 
-// Versões mais escuras, para aparecerem no fundo claro.
+// Versões bem escuras, para aparecerem no fundo claro.
 const LIGHT_COLORS = [
-  '#14141f',
-  '#d32f2f',
-  '#00838f',
-  '#f9a825',
-  '#2e7d32',
-  '#ef6c00',
-  '#5e35b1',
-  '#1565c0',
+  '#0a0a14',
+  '#8e1616',
+  '#00515a',
+  '#8a5600',
+  '#174d1b',
+  '#a03c00',
+  '#361a78',
+  '#0b3d91',
 ];
+
+// Mantenha igual ao --bg do tema claro em global.css.
+const LIGHT_BG = '#d4d4de';
+const DARK_BG = '#000';
 
 const STAR_COUNT = 90;
 const MIN_SPEED = 20; // px/s
@@ -71,7 +75,7 @@ export default function StarfieldBackground() {
     const draw = (time) => {
       const light = document.documentElement.dataset.theme === 'light';
       const palette = light ? LIGHT_COLORS : DARK_COLORS;
-      ctx.fillStyle = light ? '#f2f2f8' : '#000';
+      ctx.fillStyle = light ? LIGHT_BG : DARK_BG;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       for (const s of stars) {
         const visible = Math.sin(time * s.blinkRate + s.blinkPhase) > -0.6;

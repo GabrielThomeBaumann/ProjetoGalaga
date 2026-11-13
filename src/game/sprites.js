@@ -5,7 +5,12 @@
 //   enemy.png         -> inimigo
 //   player-bullet.png -> tiro do jogador
 //   enemy-bullet.png  -> tiro do inimigo
-// Se não achar nada lá, tenta public/images/player.png e public/images/enemy.png.
+//
+// Versões opcionais para o TEMA CLARO (mesmo nome + "-light"):
+//   player-light.png, enemy-light.png, player-bullet-light.png, enemy-bullet-light.png
+// No tema claro, se a versão "-light" existir, ela é usada no lugar da normal.
+//
+// Se não achar nada em src/assets/sprites/, tenta public/images/<nome>.png.
 // Se nenhum existir, o jogo desenha o triângulo antigo.
 
 const BASE = import.meta.env.BASE_URL;
@@ -28,32 +33,53 @@ function findAsset(name) {
 const sprites = {};
 const ready = {};
 
-function load(name) {
+function load(name, { optional = false } = {}) {
   const src = findAsset(name) ?? `${BASE}images/${name}.png`;
   const img = new Image();
   img.onload = () => {
     ready[name] = true;
   };
   img.onerror = () => {
-    console.warn(`[sprites] Não consegui carregar "${name}" em: ${src}`);
+    if (!optional) {
+      console.warn(`[sprites] Não consegui carregar "${name}" em: ${src}`);
+    }
   };
   img.src = src;
   sprites[name] = img;
 }
 
+const BASE_NAMES = ['player', 'enemy', 'player-bullet', 'enemy-bullet'];
+
 if (typeof Image !== 'undefined') {
-  load('player');
-  load('enemy');
-  load('player-bullet');
-  load('enemy-bullet');
+  for (const name of BASE_NAMES) {
+    load(name);
+    load(`${name}-light`, { optional: true }); // opcional: sem aviso se faltar
+  }
+}
+
+function isLightTheme() {
+  return document.documentElement.dataset.theme === 'light';
+}
+
+/** Retorna o nome da versão "-light" se estiver no tema claro e ela existir. */
+function resolveName(name) {
+  const lightName = `${name}-light`;
+  if (isLightTheme() && ready[lightName]) return lightName;
+  return name;
 }
 
 /** Retorna a imagem pronta para desenhar, ou null se ainda não carregou / não existe. */
 export function getSprite(name) {
-  return ready[name] ? sprites[name] : null;
+  const resolved = resolveName(name);
+  return ready[resolved] ? sprites[resolved] : null;
 }
 
 /** URL da imagem (para usar em <img>), mesmo antes de ela terminar de carregar. */
 export function getSpriteUrl(name) {
+  const lightName = `${name}-light`;
+  // No tema claro, usa a versão escura se ela existir (na pasta de sprites ou já carregada).
+  if (isLightTheme() && (findAsset(lightName) || ready[lightName])) {
+    return sprites[lightName]?.src ?? null;
+  }
   return sprites[name]?.src ?? null;
 }

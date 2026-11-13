@@ -21,15 +21,15 @@ export default function GamePage() {
   const [hud, setHud] = useState(INITIAL_HUD);
   const [showMessage, setShowMessage] = useState(true);
   const [storedHighScore] = useState(getHighScore);
-  
-  // NOVO: Estado para navegação por teclado nos menus
+
+  // Estado para navegação por teclado nos menus
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const highScore = Math.max(storedHighScore, hud.score);
 
   const handleHudChange = useCallback((snapshot) => {
     setHud(snapshot);
-    // NOVO: Quando entra em pause, game over ou vitória, reseta a seleção
+    // Quando entra em pause, game over ou vitória, reseta a seleção
     if (snapshot.status !== 'playing') {
       setSelectedIndex(0);
     }
@@ -54,21 +54,21 @@ export default function GamePage() {
     }
   }, [hud.status, hud.score]);
 
-  // NOVO: Define as ações do menu dependendo do status
+  // Ações do menu dependendo do status
   let menuActions = [];
   if (hud.status === 'paused') {
     menuActions = [
       { label: 'Continuar', action: togglePause },
-      { label: 'Voltar ao Menu', action: () => navigate('/') }
+      { label: 'Voltar ao Menu', action: () => navigate('/') },
     ];
   } else if (hud.status === 'won' || hud.status === 'lost') {
     menuActions = [
       { label: 'Reiniciar', action: restart },
-      { label: 'Voltar ao Menu', action: () => navigate('/') }
+      { label: 'Voltar ao Menu', action: () => navigate('/') },
     ];
   }
 
-  // NOVO: Escuta as teclas para navegar no menu
+  // Escuta as teclas para navegar no menu
   useEffect(() => {
     if (menuActions.length === 0) return;
 
@@ -94,32 +94,39 @@ export default function GamePage() {
   if (hud.status !== 'playing') {
     overlay = (
       <div className={styles.overlay}>
-        <h2 className={
-          hud.status === 'won' ? styles.win : 
-          hud.status === 'lost' ? styles.lose : ''
-        }>
-          {hud.status === 'won' ? 'VOCÊ VENCEU!' : 
-           hud.status === 'lost' ? 'GAME OVER' : 'JOGO PAUSADO'}
+        <h2
+          className={
+            hud.status === 'won' ? styles.win : hud.status === 'lost' ? styles.lose : ''
+          }
+        >
+          {hud.status === 'won'
+            ? 'VOCÊ VENCEU!'
+            : hud.status === 'lost'
+              ? 'GAME OVER'
+              : 'JOGO PAUSADO'}
         </h2>
-        
+
         {hud.status !== 'paused' && (
-          <p>Score final: {hud.score} · Fase: {hud.stage}</p>
+          <p>
+            Score final: {hud.score} · Fase: {hud.stage}
+          </p>
         )}
 
-        <div className={styles.menu}>
+        <nav className={styles.menu} aria-label="Menu do jogo">
           {menuActions.map((item, index) => (
             <button
               key={item.label}
               type="button"
-              className={`${styles.button} ${index === selectedIndex ? styles.selected : ''}`}
+              className={styles.item}
+              data-selected={index === selectedIndex}
               onClick={item.action}
               onMouseEnter={() => setSelectedIndex(index)}
             >
-              {item.label}
+              <span className={styles.arrow} aria-hidden="true" />
+              <span>{item.label}</span>
             </button>
           ))}
-        </div>
-        <p className={styles.hint}>Use ↑ ↓ para navegar · Enter/Espaço para confirmar</p>
+        </nav>
       </div>
     );
   }

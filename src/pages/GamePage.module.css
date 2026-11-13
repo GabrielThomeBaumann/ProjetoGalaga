@@ -40,21 +40,51 @@
   text-align: center;
 }
 
-/* --- NOVOS ESTILOS DO MENU --- */
+/* ---------- Menu (texto + seta), igual ao da tela inicial ---------- */
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
+  align-items: flex-start;
+  gap: 22px;
+  margin-top: 16px;
 }
 
-.hint {
-  margin-top: 10px;
-  font-size: 10px;
-  color: var(--muted);
-  text-align: center;
+.item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: var(--fg);
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
 }
-/* ----------------------------- */
+
+.item:focus,
+.item:focus-visible {
+  outline: none; /* a seta já indica a seleção */
+}
+
+/* Seta em pixel art, visível só no item selecionado. */
+.arrow {
+  width: 18px;
+  height: 18px;
+  background: var(--fg);
+  clip-path: polygon(0 0, 55% 0, 55% 18%, 78% 18%, 78% 36%, 100% 36%,
+    100% 64%, 78% 64%, 78% 82%, 55% 82%, 55% 100%, 0 100%);
+  visibility: hidden;
+  flex-shrink: 0;
+}
+
+.item[data-selected='true'] .arrow {
+  visibility: visible;
+}
 
 .stageMessage {
   position: absolute;
@@ -92,26 +122,6 @@
 .lose {
   color: var(--danger);
   margin: 0;
-}
-
-.button {
-  padding: 10px 20px;
-  background: transparent;
-  color: var(--accent); /* Texto na cor de destaque por padrão */
-  border: 2px solid var(--accent);
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 180px;
-}
-
-/* Quando o botão é selecionado via teclado ou mouse */
-.selected, .button:hover {
-  background: var(--accent);
-  color: var(--on-accent);
-  box-shadow: 0 0 10px var(--accent);
 }
 
 .help {
