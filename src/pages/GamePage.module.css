@@ -10,7 +10,6 @@
 
 /* Canvas do jogo + painel lateral lado a lado */
 .layout {
-  /* position + z-index: mantém o jogo e o painel acima do fundo de estrelas */
   position: relative;
   z-index: 1;
   display: flex;
@@ -41,13 +40,29 @@
   text-align: center;
 }
 
+/* --- NOVOS ESTILOS DO MENU --- */
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+/* ----------------------------- */
+
 .stageMessage {
   position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
-  pointer-events: none; /* O jogador pode atirar com a mensagem na tela */
+  pointer-events: none;
   animation: fadeOutMessage 2.5s forwards;
 }
 
@@ -80,20 +95,23 @@
 }
 
 .button {
-  margin-top: 8px;
   padding: 10px 20px;
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
+  background: transparent;
+  color: var(--accent); /* Texto na cor de destaque por padrão */
+  border: 2px solid var(--accent);
   border-radius: 4px;
   font-family: inherit;
   font-size: 12px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  min-width: 180px;
 }
 
-.button:hover {
-  opacity: 0.8;
+/* Quando o botão é selecionado via teclado ou mouse */
+.selected, .button:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 10px var(--accent);
 }
 
 .help {

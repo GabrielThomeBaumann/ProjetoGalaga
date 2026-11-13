@@ -11,7 +11,18 @@
  */
 
 /**
- * @typedef {Rect & { active: boolean, baseX: number, phase: number }} Enemy
+ * @typedef {Rect & { 
+ *   active: boolean, 
+ *   baseX: number, 
+ *   phase: number,
+ *   state: 'entering' | 'formation',
+ *   pathProgress: number,
+ *   startX: number,
+ *   startY: number,
+ *   targetX: number,
+ *   targetY: number,
+ *   entryType: 'left' | 'right' | 'top'
+ * }} Enemy
  */
 
 /**
@@ -69,7 +80,22 @@ export function createPlayer({ x, y, width, height, lives }) {
  * @returns {Enemy}
  */
 export function createEnemy({ x, y, width, height }) {
-  return { x, y, width, height, active: true, baseX: x, phase: 0 };
+  return { 
+    x, 
+    y, 
+    width, 
+    height, 
+    active: true, 
+    baseX: x, 
+    phase: 0,
+    state: 'formation', // O engine vai sobrescrever para 'entering' quando spawnar
+    pathProgress: 0,
+    startX: x,
+    startY: y,
+    targetX: x,
+    targetY: y,
+    entryType: 'top'
+  };
 }
 
 /**

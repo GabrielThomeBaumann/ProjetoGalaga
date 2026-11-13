@@ -18,6 +18,7 @@ import {
   ENEMY_SWAY_AMPLITUDE,
   ENEMY_SWAY_FREQUENCY,
   ENEMY_WIDTH,
+  MAX_STAGE,
   PLAYER_BULLET_HEIGHT,
   PLAYER_BULLET_SPEED,
   PLAYER_BULLET_WIDTH,
@@ -38,27 +39,54 @@ import { getSprite } from './sprites';
 /** @typedef {import('./entities').HudSnapshot} HudSnapshot */
 /** @typedef {import('./entities').Rect} Rect */
 
+const ENTRY_DURATION_MS = 2500; // Tempo que leva para fazer a curva e entrar na formação
+
 /* ----------------------------- Criação ----------------------------- */
 
 function createEnemies(isChallengeStage) {
   const enemies = [];
   
-  // O Challenge Stage fica vazio por enquanto (você adicionará os inimigos em círculo depois)
   if (isChallengeStage) return enemies;
 
   const gridWidth = ENEMY_COLS * ENEMY_WIDTH + (ENEMY_COLS - 1) * ENEMY_GAP_X;
   const startX = (CANVAS_WIDTH - gridWidth) / 2;
 
+  let delay = 0;
+
   for (let row = 0; row < ENEMY_ROWS; row++) {
     for (let col = 0; col < ENEMY_COLS; col++) {
-      enemies.push(
-        createEnemy({
-          x: startX + col * (ENEMY_WIDTH + ENEMY_GAP_X),
-          y: ENEMY_START_Y + row * (ENEMY_HEIGHT + ENEMY_GAP_Y),
-          width: ENEMY_WIDTH,
-          height: ENEMY_HEIGHT,
-        }),
-      );
+      const targetX = startX + col * (ENEMY_WIDTH + ENEMY_GAP_X);
+      const targetY = ENEMY_START_Y + row * (ENEMY_HEIGHT + ENEMY_GAP_Y);
+      
+      // Define de onde ele vem (esquerda, direita ou topo)
+      const entryType = col < 2 ? 'left' : col > 2 ? 'right' : 'top';
+
+      // Define o ponto de partida
+      let startXPos = targetX;
+      let startYPos = -ENEMY_HEIGHT - delay;
+      
+      if (entryType === 'left') startXPos = -ENEMY_WIDTH - delay;
+      if (entryType === 'right') startXPos = CANVAS_WIDTH + delay;
+
+      const enemy = createEnemy({
+        x: startXPos,
+        y: startYPos,
+        width: ENEMY_WIDTH,
+        height: ENEMY_HEIGHT,
+      });
+
+      // Configura a animação de entrada
+      enemy.state = 'entering';
+      enemy.startX = startXPos;
+      enemy.startY = startYPos;
+      enemy.targetX = targetX;
+      enemy.targetY = targetY;
+      enemy.baseX = targetX; // O centro da formação
+      enemy.pathProgress = 0;
+      enemy.entryType = entryType;
+
+      enemies.push(enemy);
+      delay += 120; // Fila indiana
     }
   }
   return enemies;
@@ -102,8 +130,6 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-// Hitbox do jogador: menor que o sprite e centralizada nele.
-// Usada somente nas colisões; o desenho continua com o tamanho original.
 function getPlayerHitbox(player) {
   return {
     x: player.x + (player.width - PLAYER_HITBOX_WIDTH) / 2,
@@ -132,7 +158,7 @@ export function update(state, input, dtMs, nowMs, random = Math.random) {
   state.time += dt;
 
   updatePlayer(state, input, dt, nowMs);
-  updateEnemies(state, dt);
+  updateEnemies(state, dt, dtMs);
   
   if (!state.isChallengeStage) {
     updateEnemyShooting(state, dtMs, random);
@@ -170,19 +196,51 @@ function updatePlayer(state, input, dt, nowMs) {
   }
 }
 
-function updateEnemies(state, dt) {
+function updateEnemies(state, dt, dtMs) {
   for (const enemy of state.enemies) {
     if (!enemy.active) continue;
-    
-    enemy.x =
-      enemy.baseX +
-      Math.sin(state.time * ENEMY_SWAY_FREQUENCY + enemy.phase) *
-        ENEMY_SWAY_AMPLITUDE;
-        
-    enemy.y += ENEMY_DESCENT_SPEED * dt;
 
-    if (enemy.y > CANVAS_HEIGHT) {
-      enemy.y = -enemy.height; 
+    if (enemy.state === 'entering') {
+      // Avança o progresso (0 a 1)
+      enemy.pathProgress += dtMs / ENTRY_DURATION_MS;
+      
+      if (enemy.pathProgress >= 1) {
+        // Chegou ao destino, entra na formação
+        enemy.state = 'formation';
+        enemy.x = enemy.targetX;
+        enemy.y = enemy.targetY;
+      } else {
+        // Animação da curva de entrada
+        const t = enemy.pathProgress;
+        
+        // Interpolação linear (Lerp) - garante que chegue no destino exato
+        let currentX = enemy.startX + (enemy.targetX - enemy.startX) * t;
+        let currentY = enemy.startY + (enemy.targetY - enemy.startY) * t;
+
+        // Adiciona a "acrobacia" (movimento em onda)
+        if (enemy.entryType === 'left' || enemy.entryType === 'right') {
+          // Faz um arco no eixo Y se vier da lateral
+          currentY += Math.sin(t * Math.PI) * 200;
+        } else {
+          // Faz um "S" no eixo X se vier do topo
+          currentX += Math.sin(t * Math.PI * 2) * 150;
+        }
+
+        enemy.x = currentX;
+        enemy.y = currentY;
+      }
+    } else {
+      // Movimento normal da formação (zigue-zague)
+      enemy.x =
+        enemy.baseX +
+        Math.sin(state.time * ENEMY_SWAY_FREQUENCY + enemy.phase) *
+          ENEMY_SWAY_AMPLITUDE;
+          
+      enemy.y += ENEMY_DESCENT_SPEED * dt;
+
+      if (enemy.y > CANVAS_HEIGHT) {
+        enemy.y = -enemy.height; 
+      }
     }
   }
 }
@@ -192,7 +250,8 @@ function updateEnemyShooting(state, dtMs, random) {
   if (state.enemyShootTimerMs < ENEMY_SHOOT_INTERVAL_MS) return;
   state.enemyShootTimerMs -= ENEMY_SHOOT_INTERVAL_MS;
 
-  const alive = state.enemies.filter((e) => e.active);
+  // Só atiram se já estiverem na formação
+  const alive = state.enemies.filter((e) => e.active && e.state === 'formation');
   if (alive.length === 0) return;
 
   const shooter = alive[Math.floor(random() * alive.length)];
@@ -260,20 +319,25 @@ function updateStatus(state) {
     return;
   }
 
-  // Se for um Challenge Stage e não houver inimigos, esperamos 3 segundos 
-  // (usando o state.time que já conta o tempo) antes de avançar para a próxima.
   if (state.isChallengeStage && state.enemies.length === 0) {
     if (state.time > 3) {
+      if (state.stage + 1 > MAX_STAGE) {
+        state.status = 'won';
+        return;
+      }
       state.stage += 1;
       state.isChallengeStage = state.stage % CHALLENGE_STAGE_FREQUENCY === 0;
       state.time = 0;
       state.enemies = createEnemies(state.isChallengeStage);
     }
-    return; // Impede que o código pule a fase imediatamente
+    return; 
   }
   
-  // Se for uma fase normal e os inimigos acabaram, avança para a próxima
   if (!state.isChallengeStage && state.enemies.length === 0) {
+    if (state.stage + 1 > MAX_STAGE) {
+      state.status = 'won';
+      return;
+    }
     state.stage += 1;
     state.isChallengeStage = state.stage % CHALLENGE_STAGE_FREQUENCY === 0;
     state.time = 0; 
@@ -284,11 +348,9 @@ function updateStatus(state) {
 /* ----------------------------- Render ----------------------------- */
 
 export function render(ctx, state) {
-  // O canvas é transparente: o fundo de estrelas aparece por trás do jogo.
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  ctx.imageSmoothingEnabled = false; // mantém o visual pixelado
+  ctx.imageSmoothingEnabled = false; 
 
-  // Nave do jogador (usa a imagem se existir; senão, o triângulo).
   const p = state.player;
   const playerSprite = getSprite('player');
   if (playerSprite) {
@@ -303,7 +365,6 @@ export function render(ctx, state) {
     ctx.fill();
   }
 
-  // Inimigos (usa a imagem se existir; senão, o triângulo).
   const enemySprite = getSprite('enemy');
   ctx.fillStyle = COLORS.enemy;
   for (const e of state.enemies) {
@@ -319,7 +380,6 @@ export function render(ctx, state) {
     }
   }
 
-  // Tiros (usa a imagem de cada dono se existir; senão, o retângulo colorido).
   const playerBulletSprite = getSprite('player-bullet');
   const enemyBulletSprite = getSprite('enemy-bullet');
   for (const b of state.bullets) {
