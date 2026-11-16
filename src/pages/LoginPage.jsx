@@ -1,71 +1,114 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styles from './LoginPage.module.css';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validate(email, password) {
-  const errors = {};
-  if (!EMAIL_REGEX.test(email)) errors.email = 'Informe um e-mail válido.';
-  if (password.length < 6) {
-    errors.password = 'A senha deve ter ao menos 6 caracteres.';
-  }
-  return errors;
-}
+import { Link } from 'react-router-dom';
+import AuthLayout from '../components/AuthLayout';
+import FormField from '../components/FormField';
+import { usePendingScore } from '../contexts/PendingScoreContext';
+import { useAfterAuth } from '../hooks/useAfterAuth';
+import { signIn } from '../services/authService';
+import formStyles from '../styles/AuthForm.module.css';
+import { loginSchema, validate } from '../validation/authSchemas';
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
+  const afterAuth = useAfterAuth();
+  const { pendingScore } = usePendingScore();
 
-  const handleSubmit = (e) => {
+  const [values, setValues] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setValues((current) => ({ ...current, [name]: value }));
+    // Limpa o erro do campo assim que a pessoa volta a digitar nele.
+    if (errors[name]) setErrors((current) => ({ ...current, [name]: undefined }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const found = validate(email, password);
-    setErrors(found);
-    if (Object.keys(found).length === 0) {
-      // Mock: sem backend nesta fase.
-      navigate('/');
+    setSubmitError('');
+
+    const result = validate(loginSchema, values);
+    setErrors(result.errors);
+    if (!result.success) return;
+
+    setSubmitting(true);
+    try {
+      await signIn(result.data);
+    } catch (err) {
+      setSubmitError(err.message);
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await afterAuth();
+    } catch {
+      setSubmitError(
+        'Você entrou, mas não foi possível registrar a pontuação. Envie o formulário de novo para tentar outra vez.',
+      );
+      setSubmitting(false);
     }
   };
 
+  const notice =
+    pendingScore !== null ? (
+      <>
+        Você fez <strong>{pendingScore}</strong> pontos. Entre para registrar no
+        ranking.
+      </>
+    ) : null;
+
   return (
-    <section className={styles.page}>
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <h1 className={styles.title}>Login</h1>
-
-        <label className={styles.label} htmlFor="email">
-          E-mail
-        </label>
-        <input
+    <AuthLayout
+      title="Login"
+      notice={notice}
+      footer={
+        <>
+          <p>
+            Ainda não tem conta?{' '}
+            <Link className={formStyles.link} to="/register">
+              Criar conta
+            </Link>
+          </p>
+          <Link className={formStyles.link} to="/">
+            Voltar ao menu
+          </Link>
+        </>
+      }
+    >
+      <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
+        <FormField
           id="email"
+          label="E-mail"
           type="email"
-          className={styles.input}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
+          autoFocus
+          value={values.email}
+          onChange={handleChange}
+          error={errors.email}
         />
-        {errors.email && <span className={styles.error}>{errors.email}</span>}
 
-        <label className={styles.label} htmlFor="password">
-          Senha
-        </label>
-        <input
+        <FormField
           id="password"
+          label="Senha"
           type="password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
+          value={values.password}
+          onChange={handleChange}
+          error={errors.password}
         />
-        {errors.password && (
-          <span className={styles.error}>{errors.password}</span>
+
+        {submitError && (
+          <p className={formStyles.formError} role="alert">
+            {submitError}
+          </p>
         )}
 
-        <button type="submit" className={styles.button}>
-          Entrar
+        <button type="submit" className={formStyles.submit} disabled={submitting}>
+          {submitting ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
-    </section>
+    </AuthLayout>
   );
 }

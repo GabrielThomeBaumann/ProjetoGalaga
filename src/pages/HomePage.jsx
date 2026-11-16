@@ -1,24 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StarfieldBackground from '../components/StarfieldBackground';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './HomePage.module.css';
-
-const MENU_ITEMS = [
-  { label: 'Start', to: '/game' },
-  { label: 'Leaderboard', to: '/leaderboard' },
-  { label: 'Conquistas', to: '/achievements' },
-  { label: 'Login', to: '/login' },
-  { label: 'Configurações', to: '/settings' },
-];
 
 // Coloque o arquivo da logo em: public/images/galaga-logo.png
 const LOGO_SRC = `${import.meta.env.BASE_URL}images/galaga-logo.png`;
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selected, setSelected] = useState(0);
   const [logoFailed, setLogoFailed] = useState(false);
   const itemRefs = useRef([]);
+
+  // Com sessão, o item de login vira "Conta" (área protegida).
+  const menuItems = useMemo(
+    () => [
+      { label: 'Start', to: '/game' },
+      { label: 'Leaderboard', to: '/leaderboard' },
+      { label: 'Conquistas', to: '/achievements' },
+      user
+        ? { label: 'Conta', to: '/account' }
+        : { label: 'Login', to: '/login' },
+      { label: 'Configurações', to: '/settings' },
+    ],
+    [user],
+  );
+
+  const itemCount = menuItems.length;
 
   // Navegação por teclado: ↑ ↓ movem a seta; Enter/Espaço ativam (nativo do botão).
   useEffect(() => {
@@ -27,14 +37,14 @@ export default function HomePage() {
       e.preventDefault();
       const step = e.code === 'ArrowDown' ? 1 : -1;
       setSelected((current) => {
-        const next = (current + step + MENU_ITEMS.length) % MENU_ITEMS.length;
+        const next = (current + step + itemCount) % itemCount;
         itemRefs.current[next]?.focus();
         return next;
       });
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [itemCount]);
 
   return (
     <section className={styles.page}>
@@ -53,7 +63,7 @@ export default function HomePage() {
         )}
 
         <nav className={styles.menu} aria-label="Menu principal">
-          {MENU_ITEMS.map((item, index) => (
+          {menuItems.map((item, index) => (
             <button
               key={item.to}
               ref={(el) => {

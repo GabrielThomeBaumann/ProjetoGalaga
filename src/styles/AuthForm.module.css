@@ -1,0 +1,138 @@
+/* Estilos compartilhados por Login, Cadastro, Conta e 404. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--fg);
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  background: var(--input-bg);
+  color: var(--fg);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 2px var(--danger);
+}
+
+.error {
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--danger);
+}
+
+.formError {
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--danger);
+  color: var(--danger);
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.success {
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid #66bb6a;
+  color: #66bb6a;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.submit {
+  padding: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.submit:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.45);
+}
+
+.submit:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botão secundário: só contorno */
+.secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 2px solid var(--border);
+  box-shadow: none;
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit {
+    transition: none;
+  }
+}

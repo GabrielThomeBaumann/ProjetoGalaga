@@ -8,21 +8,44 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    let active = true;
+
+    // Sessão salva pelo cliente do Supabase (sobrevive ao recarregar a página).
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (active) setSession(data.session);
+      })
+      .catch(() => {
+        if (active) setSession(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const user = session?.user ?? null;
   const displayName = user?.user_metadata?.display_name ?? null;
 
   return (
-    <AuthContext.Provider value={{ session, user, displayName, loading }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        displayName,
+        isAuthenticated: user !== null,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
