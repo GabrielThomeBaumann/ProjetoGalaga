@@ -10,7 +10,7 @@ import {
   DISPLAY_NAME_MAX,
   registerSchema,
   validate,
-} from '../validation/authSchemas';
+} from '../validation/AuthSchemas';
 
 const INITIAL_VALUES = {
   displayName: '',

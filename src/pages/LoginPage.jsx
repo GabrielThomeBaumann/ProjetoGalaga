@@ -6,7 +6,7 @@ import { usePendingScore } from '../contexts/PendingScoreContext';
 import { useAfterAuth } from '../hooks/useAfterAuth';
 import { signIn } from '../services/authService';
 import formStyles from '../styles/AuthForm.module.css';
-import { loginSchema, validate } from '../validation/authSchemas';
+import { loginSchema, validate } from '../validation/AuthSchemas';
 
 export default function LoginPage() {
   const afterAuth = useAfterAuth();
