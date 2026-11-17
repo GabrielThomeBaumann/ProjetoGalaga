@@ -3,8 +3,8 @@ import { useAuth } from './contexts/AuthContext';
 import styles from './styles/App.module.css';
 
 // Só estas rotas usam a navbar. As demais (menu, jogo, configurações, login,
-// cadastro, conta e 404) são telas cheias com fundo de estrelas.
-const ROUTES_WITH_NAVBAR = ['/leaderboard', '/achievements'];
+// cadastro, conta, ranking e 404) são telas cheias com fundo de estrelas.
+const ROUTES_WITH_NAVBAR = ['/achievements'];
 
 function linkClass({ isActive }) {
   return isActive ? `${styles.link} ${styles.active}` : styles.link;

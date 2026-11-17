@@ -12,7 +12,19 @@ export async function fetchRanking(limit = 20) {
   return data;
 }
 
-/** Recorde do usuário logado (ou null se nunca jogou). */
+/** Maior pontuação registrada por qualquer jogador (0 se o ranking estiver vazio). */
+export async function fetchTopScore() {
+  const { data, error } = await supabase
+    .from('scores')
+    .select('best_score')
+    .order('best_score', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.best_score ?? 0;
+}
+
+/** Recorde do usuário informado (0 se ele nunca registrou pontuação). */
 export async function fetchMyHighScore(userId) {
   const { data, error } = await supabase
     .from('scores')

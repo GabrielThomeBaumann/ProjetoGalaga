@@ -29,6 +29,10 @@
     6px 6px 0 rgba(0, 0, 0, 0.45);
 }
 
+.wide {
+  width: min(600px, 100%);
+}
+
 .title {
   margin: 0;
   text-align: center;
