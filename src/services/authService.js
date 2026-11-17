@@ -7,7 +7,10 @@ function translateError(error) {
   if (message.includes('invalid login credentials')) {
     return 'E-mail ou senha incorretos.';
   }
-  if (message.includes('already registered') || message.includes('already been registered')) {
+  if (
+    message.includes('already registered') ||
+    message.includes('already been registered')
+  ) {
     return 'Este e-mail já tem uma conta. Entre com ela.';
   }
   if (message.includes('email not confirmed')) {
@@ -16,6 +19,21 @@ function translateError(error) {
   if (error?.status === 429 || message.includes('rate limit')) {
     return 'Muitas tentativas seguidas. Aguarde um pouco e tente de novo.';
   }
+  if (message.includes('sending confirmation email')) {
+    return 'Não foi possível enviar o e-mail de confirmação. Tente novamente em alguns minutos.';
+  }
+  if (message.includes('signups not allowed') || message.includes('signup is disabled')) {
+    return 'Novos cadastros estão desativados no momento.';
+  }
+  if (message.includes('email address') && message.includes('invalid')) {
+    return 'Este e-mail foi recusado. Use um endereço real.';
+  }
+  if (message.includes('password') && message.includes('characters')) {
+    return 'A senha é curta demais.';
+  }
+  if (message.includes('database error')) {
+    return 'Erro no banco ao criar a conta. Verifique os triggers da tabela auth.users.';
+  }
   if (message.includes('failed to fetch') || message.includes('network')) {
     return 'Sem conexão com o servidor. Verifique sua internet e tente de novo.';
   }
@@ -23,6 +41,8 @@ function translateError(error) {
 }
 
 function fail(error) {
+  // Mostra o erro original para facilitar o diagnóstico.
+  console.error('[auth]', error?.status, error?.code, error?.message, error);
   throw new Error(translateError(error), { cause: error });
 }
 
