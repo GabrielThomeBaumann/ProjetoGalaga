@@ -1,12 +1,15 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCanvas from '../components/GameCanvas';
 import HUD from '../components/HUD';
 import StarfieldBackground from '../components/StarfieldBackground';
+import { useAuth } from '../contexts/AuthContext';
+import { usePendingScore } from '../contexts/PendingScoreContext';
 import { PLAYER_LIVES } from '../game/constants';
-import { getHighScore, saveHighScore } from '../game/highScore';
+import { getHighScore } from '../game/highScore';
 import { formatTime } from '../game/scoring';
 import { useGame } from '../game/useGame';
+import { submitScore } from '../services/scoreService';
 import styles from './GamePage.module.css';
 
 const INITIAL_HUD = {
@@ -21,16 +24,28 @@ const INITIAL_HUD = {
   finalScore: 0,
 };
 
+// Situação do envio da pontuação ao ranking.
+// status: 'idle' | 'saving' | 'saved' | 'error' | 'pending'
+//   pending = partida sem sessão; a pontuação está em memória (contexto).
+const INITIAL_SAVE = { status: 'idle', best: null };
+
 export default function GamePage() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { setPendingScore } = usePendingScore();
+
   const [hud, setHud] = useState(INITIAL_HUD);
   const [showMessage, setShowMessage] = useState(true);
+  const [save, setSave] = useState(INITIAL_SAVE);
 
   // Recorde global vindo do Supabase (0 enquanto carrega ou se falhar).
   const [storedHighScore, setStoredHighScore] = useState(0);
 
   // Estado para navegação por teclado nos menus
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Garante que o fim de cada partida seja tratado uma única vez.
+  const endHandledRef = useRef(false);
 
   // Na vitória, a pontuação exibida já inclui os bônus de tempo e vidas.
   const displayScore = hud.status === 'won' ? hud.finalScore : hud.score;
@@ -68,12 +83,47 @@ export default function GamePage() {
     }
   }, [hud.stage, hud.status]);
 
-  // Fim de jogo: salva a pontuação final (com bônus, se venceu).
-  useEffect(() => {
-    if (hud.status === 'lost' || hud.status === 'won') {
-      saveHighScore(hud.finalScore);
+  // Envia a pontuação ao Supabase (exige sessão). O RPC só atualiza o recorde
+  // se a nova pontuação for maior e devolve a linha atual do jogador.
+  const saveScore = useCallback(async (score) => {
+    setSave({ status: 'saving', best: null });
+    try {
+      const row = await submitScore(score);
+      setSave({ status: 'saved', best: row.best_score });
+      setStoredHighScore((prev) => Math.max(prev, row.best_score));
+    } catch (err) {
+      console.error('[ranking] falha ao salvar a pontuação', err);
+      setSave({ status: 'error', best: null });
     }
-  }, [hud.status, hud.finalScore]);
+  }, []);
+
+  // Fim de partida: com sessão, grava no ranking; sem sessão, guarda a
+  // pontuação em memória (PendingScoreContext) e oferece login/cadastro.
+  useEffect(() => {
+    const ended = hud.status === 'lost' || hud.status === 'won';
+
+    if (!ended) {
+      // Nova partida: libera o tratamento do próximo fim de jogo.
+      if (hud.status === 'playing') {
+        endHandledRef.current = false;
+        setSave(INITIAL_SAVE);
+      }
+      return;
+    }
+
+    if (authLoading || endHandledRef.current) return;
+    endHandledRef.current = true;
+
+    if (hud.finalScore <= 0) return; // nada a registrar
+
+    if (user) {
+      saveScore(hud.finalScore);
+    } else {
+      // Mantém a maior pontuação pendente (em memória, sem localStorage).
+      setPendingScore((prev) => Math.max(prev ?? 0, hud.finalScore));
+      setSave({ status: 'pending', best: null });
+    }
+  }, [hud.status, hud.finalScore, user, authLoading, saveScore, setPendingScore]);
 
   // Ações do menu dependendo do status
   let menuActions = [];
@@ -83,10 +133,28 @@ export default function GamePage() {
       { label: 'Voltar ao Menu', action: () => navigate('/') },
     ];
   } else if (hud.status === 'won' || hud.status === 'lost') {
-    menuActions = [
-      { label: 'Reiniciar', action: restart },
-      { label: 'Voltar ao Menu', action: () => navigate('/') },
-    ];
+    menuActions = [{ label: 'Reiniciar', action: restart }];
+
+    if (save.status === 'pending') {
+      menuActions.push(
+        { label: 'Entrar', action: () => navigate('/login') },
+        { label: 'Criar conta', action: () => navigate('/register') },
+      );
+    }
+    if (save.status === 'saved') {
+      menuActions.push({
+        label: 'Ver Ranking',
+        action: () => navigate('/leaderboard'),
+      });
+    }
+    if (save.status === 'error') {
+      menuActions.push({
+        label: 'Tentar de novo',
+        action: () => saveScore(hud.finalScore),
+      });
+    }
+
+    menuActions.push({ label: 'Voltar ao Menu', action: () => navigate('/') });
   }
 
   // Escuta as teclas para navegar no menu
@@ -103,13 +171,32 @@ export default function GamePage() {
         });
       } else if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        menuActions[selectedIndex].action();
+        menuActions[selectedIndex]?.action();
       }
     };
 
     window.addEventListener('keydown', handleMenuKeys);
     return () => window.removeEventListener('keydown', handleMenuKeys);
   }, [menuActions, selectedIndex]);
+
+  // Mensagem sobre o envio ao ranking (classes já existem em GamePage.module.css).
+  let saveMessage = null;
+  let saveClass = styles.info;
+  if (save.status === 'saving') {
+    saveMessage = 'Salvando no ranking...';
+  } else if (save.status === 'saved') {
+    if (save.best > hud.finalScore) {
+      saveMessage = `Seu recorde continua ${save.best}.`;
+    } else {
+      saveMessage = 'Novo recorde salvo no ranking!';
+      saveClass = styles.ok;
+    }
+  } else if (save.status === 'error') {
+    saveMessage = 'Não foi possível salvar a pontuação.';
+    saveClass = styles.error;
+  } else if (save.status === 'pending') {
+    saveMessage = 'Entre ou crie uma conta para registrar no ranking.';
+  }
 
   let overlay = null;
 
@@ -148,6 +235,12 @@ export default function GamePage() {
         {hud.status === 'lost' && (
           <p>
             Score final: {hud.score} · Fase: {hud.stage}
+          </p>
+        )}
+
+        {saveMessage && (
+          <p className={`${styles.saveMessage} ${saveClass}`} role="status">
+            {saveMessage}
           </p>
         )}
 

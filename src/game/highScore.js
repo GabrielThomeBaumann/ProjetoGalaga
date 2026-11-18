@@ -1,8 +1,8 @@
 // Recorde (high score) global: a maior pontuação do ranking no Supabase.
 //
 // A leitura é pública (a política "ranking publico" permite select para anon),
-// então funciona mesmo sem login. A gravação do recorde do jogador é feita
-// por scoreService.submitScore(), que exige autenticação.
+// então funciona mesmo sem login. A gravação é feita por
+// scoreService.submitScore(), que exige autenticação (chamada em GamePage).
 
 import { fetchRanking } from '../services/scoreService';
 
@@ -14,11 +14,4 @@ export async function getHighScore() {
   } catch {
     return 0;
   }
-}
-
-/** Chamada quando uma partida termina. Ainda não salva nada. */
-// eslint-disable-next-line no-unused-vars
-export function saveHighScore(score) {
-  // TODO: chamar submitScore(score) quando o usuário estiver autenticado;
-  // se não estiver, guardar em PendingScoreContext e levar ao login/cadastro.
 }
