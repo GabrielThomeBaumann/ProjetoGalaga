@@ -1,17 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCanvas from '../components/GameCanvas';
 import HUD from '../components/HUD';
 import StarfieldBackground from '../components/StarfieldBackground';
-import { useAuth } from '../contexts/AuthContext';
-import { usePendingScore } from '../contexts/PendingScoreContext';
 import { PLAYER_LIVES } from '../game/constants';
+import { getHighScore, saveHighScore } from '../game/highScore';
+import { formatTime } from '../game/scoring';
 import { useGame } from '../game/useGame';
-import {
-  fetchMyHighScore,
-  fetchTopScore,
-  submitScore,
-} from '../services/scoreService';
 import styles from './GamePage.module.css';
 
 const INITIAL_HUD = {
@@ -20,65 +15,34 @@ const INITIAL_HUD = {
   status: 'playing',
   stage: 1,
   isChallengeStage: false,
+  elapsedMs: 0,
+  timeBonus: 0,
+  lifeBonus: 0,
+  finalScore: 0,
 };
-
-// Situação do registro da pontuação ao fim da partida:
-// idle (jogando) | none (0 pontos) | guest (sem login) | saving | saved | error
-const IDLE_SAVE = { phase: 'idle' };
-
-function getSaveMessage(save) {
-  switch (save.phase) {
-    case 'guest':
-      return {
-        tone: 'info',
-        text: 'Entre ou crie uma conta para registrar esta pontuação no ranking.',
-      };
-    case 'saving':
-      return { tone: 'info', text: 'Salvando pontuação...' };
-    case 'saved':
-      return save.isRecord
-        ? { tone: 'ok', text: `Novo recorde pessoal: ${save.best}!` }
-        : { tone: 'info', text: `Seu recorde continua ${save.best}.` };
-    case 'error':
-      return {
-        tone: 'error',
-        text: 'Não foi possível salvar a pontuação.',
-      };
-    default:
-      return null;
-  }
-}
 
 export default function GamePage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { setPendingScore } = usePendingScore();
-
   const [hud, setHud] = useState(INITIAL_HUD);
   const [showMessage, setShowMessage] = useState(true);
-  const [topScore, setTopScore] = useState(0); // maior pontuação registrada
-  const [save, setSave] = useState(IDLE_SAVE);
+
+  // Recorde global vindo do Supabase (0 enquanto carrega ou se falhar).
+  const [storedHighScore, setStoredHighScore] = useState(0);
 
   // Estado para navegação por teclado nos menus
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const endHandledRef = useRef(false); // o fim da partida atual já foi tratado?
-  const runIdRef = useRef(0); // descarta respostas de partidas antigas
+  // Na vitória, a pontuação exibida já inclui os bônus de tempo e vidas.
+  const displayScore = hud.status === 'won' ? hud.finalScore : hud.score;
+  const highScore = Math.max(storedHighScore, displayScore);
 
-  const highScore = Math.max(topScore, hud.score);
-
-  // Recorde exibido no HUD = maior pontuação do ranking.
   useEffect(() => {
-    let active = true;
-    fetchTopScore()
-      .then((value) => {
-        if (active) setTopScore(value);
-      })
-      .catch(() => {
-        // Sem conexão: o jogo continua funcionando, só sem o recorde global.
-      });
+    let cancelled = false;
+    getHighScore().then((value) => {
+      if (!cancelled) setStoredHighScore(value);
+    });
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, []);
 
@@ -104,61 +68,12 @@ export default function GamePage() {
     }
   }, [hud.stage, hud.status]);
 
-  // Grava a pontuação no Supabase (só para quem está logado).
-  const saveScore = useCallback(
-    async (score) => {
-      if (!user) return;
-      const runId = ++runIdRef.current;
-      setSave({ phase: 'saving' });
-      try {
-        const previousBest = await fetchMyHighScore(user.id);
-        const row = await submitScore(score);
-        if (runId !== runIdRef.current) return;
-        setTopScore((current) => Math.max(current, row.best_score));
-        setSave({
-          phase: 'saved',
-          isRecord: score > previousBest,
-          best: row.best_score,
-        });
-      } catch {
-        if (runId !== runIdRef.current) return;
-        setSave({ phase: 'error' });
-      }
-    },
-    [user],
-  );
-
-  // Fim de jogo (derrota ou vitória):
-  // - com login: registra no Supabase;
-  // - sem login: guarda a pontuação pendente em memória (contexto) e
-  //   oferece entrar/criar conta. Nada é gravado no navegador.
+  // Fim de jogo: salva a pontuação final (com bônus, se venceu).
   useEffect(() => {
-    if (hud.status === 'playing') {
-      endHandledRef.current = false;
-      runIdRef.current += 1;
-      setSave(IDLE_SAVE);
-      return;
+    if (hud.status === 'lost' || hud.status === 'won') {
+      saveHighScore(hud.finalScore);
     }
-    if (hud.status === 'paused') return;
-    if (authLoading || endHandledRef.current) return;
-    endHandledRef.current = true;
-
-    if (hud.score <= 0) {
-      setSave({ phase: 'none' });
-      return;
-    }
-
-    if (!user) {
-      // Mantém a maior pontuação pendente, caso a pessoa jogue de novo antes de entrar.
-      setPendingScore((prev) =>
-        prev === null ? hud.score : Math.max(prev, hud.score),
-      );
-      setSave({ phase: 'guest' });
-      return;
-    }
-
-    saveScore(hud.score);
-  }, [hud.status, hud.score, user, authLoading, saveScore, setPendingScore]);
+  }, [hud.status, hud.finalScore]);
 
   // Ações do menu dependendo do status
   let menuActions = [];
@@ -168,28 +83,10 @@ export default function GamePage() {
       { label: 'Voltar ao Menu', action: () => navigate('/') },
     ];
   } else if (hud.status === 'won' || hud.status === 'lost') {
-    if (save.phase === 'guest') {
-      menuActions.push(
-        { label: 'Entrar', action: () => navigate('/login') },
-        { label: 'Criar conta', action: () => navigate('/register') },
-      );
-    }
-    if (save.phase === 'error') {
-      menuActions.push({
-        label: 'Tentar de novo',
-        action: () => saveScore(hud.score),
-      });
-    }
-    if (save.phase === 'saved') {
-      menuActions.push({
-        label: 'Ver ranking',
-        action: () => navigate('/leaderboard'),
-      });
-    }
-    menuActions.push(
+    menuActions = [
       { label: 'Reiniciar', action: restart },
       { label: 'Voltar ao Menu', action: () => navigate('/') },
-    );
+    ];
   }
 
   // Escuta as teclas para navegar no menu
@@ -200,21 +97,19 @@ export default function GamePage() {
       if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex((prev) => {
-          if (e.code === 'ArrowUp') return prev > 0 ? prev - 1 : menuActions.length - 1;
+          if (e.code === 'ArrowUp')
+            return prev > 0 ? prev - 1 : menuActions.length - 1;
           return prev < menuActions.length - 1 ? prev + 1 : 0;
         });
       } else if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        const index = Math.min(selectedIndex, menuActions.length - 1);
-        menuActions[index].action();
+        menuActions[selectedIndex].action();
       }
     };
 
     window.addEventListener('keydown', handleMenuKeys);
     return () => window.removeEventListener('keydown', handleMenuKeys);
   }, [menuActions, selectedIndex]);
-
-  const saveMessage = getSaveMessage(save);
 
   let overlay = null;
 
@@ -223,7 +118,11 @@ export default function GamePage() {
       <div className={styles.overlay}>
         <h2
           className={
-            hud.status === 'won' ? styles.win : hud.status === 'lost' ? styles.lose : ''
+            hud.status === 'won'
+              ? styles.win
+              : hud.status === 'lost'
+                ? styles.lose
+                : ''
           }
         >
           {hud.status === 'won'
@@ -233,18 +132,22 @@ export default function GamePage() {
               : 'JOGO PAUSADO'}
         </h2>
 
-        {hud.status !== 'paused' && (
-          <p>
-            Score final: {hud.score} · Fase: {hud.stage}
-          </p>
+        {hud.status === 'won' && (
+          <>
+            <p>Pontos: {hud.score}</p>
+            <p>
+              Bônus de tempo ({formatTime(hud.elapsedMs)}): +{hud.timeBonus}
+            </p>
+            <p>
+              Bônus de vidas (x{hud.lives}): +{hud.lifeBonus}
+            </p>
+            <p>Score final: {hud.finalScore}</p>
+          </>
         )}
 
-        {hud.status !== 'paused' && saveMessage && (
-          <p
-            className={`${styles.saveMessage} ${styles[saveMessage.tone]}`}
-            role="status"
-          >
-            {saveMessage.text}
+        {hud.status === 'lost' && (
+          <p>
+            Score final: {hud.score} · Fase: {hud.stage}
           </p>
         )}
 
@@ -280,7 +183,9 @@ export default function GamePage() {
               {showMessage && hud.status === 'playing' && (
                 <div className={styles.stageMessage}>
                   <h1 className={styles.stageText}>
-                    {hud.isChallengeStage ? 'CHALLENGE STAGE' : `STAGE ${hud.stage}`}
+                    {hud.isChallengeStage
+                      ? 'CHALLENGE STAGE'
+                      : `STAGE ${hud.stage}`}
                   </h1>
                 </div>
               )}
@@ -288,10 +193,17 @@ export default function GamePage() {
           }
         />
 
-        <HUD score={hud.score} highScore={highScore} lives={hud.lives} />
+        <HUD
+          score={displayScore}
+          highScore={highScore}
+          lives={hud.lives}
+          elapsedMs={hud.elapsedMs}
+        />
       </div>
 
-      <p className={styles.help}>← → / A D: mover · Espaço: atirar · ESC: Pausar</p>
+      <p className={styles.help}>
+        ← → / A D: mover · Espaço: atirar · ESC: Pausar
+      </p>
     </section>
   );
 }

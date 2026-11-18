@@ -32,6 +32,7 @@ import {
   PLAYER_Y_MARGIN,
 } from './constants';
 import { createBullet, createEnemy, createPlayer } from './entities';
+import { calculateBonus } from './scoring';
 import { getSprite } from './sprites';
 
 /** @typedef {import('./entities').GameState} GameState */
@@ -45,7 +46,7 @@ const ENTRY_DURATION_MS = 2500; // Tempo que leva para fazer a curva e entrar na
 
 function createEnemies(isChallengeStage) {
   const enemies = [];
-  
+
   if (isChallengeStage) return enemies;
 
   const gridWidth = ENEMY_COLS * ENEMY_WIDTH + (ENEMY_COLS - 1) * ENEMY_GAP_X;
@@ -57,14 +58,14 @@ function createEnemies(isChallengeStage) {
     for (let col = 0; col < ENEMY_COLS; col++) {
       const targetX = startX + col * (ENEMY_WIDTH + ENEMY_GAP_X);
       const targetY = ENEMY_START_Y + row * (ENEMY_HEIGHT + ENEMY_GAP_Y);
-      
+
       // Define de onde ele vem (esquerda, direita ou topo)
       const entryType = col < 2 ? 'left' : col > 2 ? 'right' : 'top';
 
       // Define o ponto de partida
       let startXPos = targetX;
       let startYPos = -ENEMY_HEIGHT - delay;
-      
+
       if (entryType === 'left') startXPos = -ENEMY_WIDTH - delay;
       if (entryType === 'right') startXPos = CANVAS_WIDTH + delay;
 
@@ -110,7 +111,8 @@ export function createInitialState(stage = 1) {
     enemies: createEnemies(isChallengeStage),
     bullets: [],
     score: 0,
-    time: 0,
+    time: 0, // tempo da fase atual (zera a cada fase)
+    elapsedMs: 0, // tempo total da partida (não zera entre fases)
     enemyShootTimerMs: 0,
     // Fila de eventos do frame (sons). O som de início só vale para a fase 1.
     events: stage === 1 ? ['gameStart'] : [],
@@ -142,12 +144,22 @@ function getPlayerHitbox(player) {
 }
 
 export function toHudSnapshot(state) {
+  // O bônus só vale na vitória.
+  const won = state.status === 'won';
+  const bonus = won
+    ? calculateBonus(state.player.lives, state.elapsedMs)
+    : { time: 0, lives: 0, total: 0 };
+
   return {
     score: state.score,
     lives: state.player.lives,
     status: state.status,
     stage: state.stage,
     isChallengeStage: state.isChallengeStage,
+    elapsedMs: state.elapsedMs,
+    timeBonus: bonus.time,
+    lifeBonus: bonus.lives,
+    finalScore: state.score + bonus.total,
   };
 }
 
@@ -158,14 +170,15 @@ export function update(state, input, dtMs, nowMs, random = Math.random) {
 
   const dt = dtMs / 1000;
   state.time += dt;
+  state.elapsedMs += dtMs;
 
   updatePlayer(state, input, dt, nowMs);
   updateEnemies(state, dt, dtMs);
-  
+
   if (!state.isChallengeStage) {
     updateEnemyShooting(state, dtMs, random);
   }
-  
+
   updateBullets(state, dt);
   resolveCollisions(state);
   cleanup(state);
@@ -205,7 +218,7 @@ function updateEnemies(state, dt, dtMs) {
     if (enemy.state === 'entering') {
       // Avança o progresso (0 a 1)
       enemy.pathProgress += dtMs / ENTRY_DURATION_MS;
-      
+
       if (enemy.pathProgress >= 1) {
         // Chegou ao destino, entra na formação
         enemy.state = 'formation';
@@ -214,7 +227,7 @@ function updateEnemies(state, dt, dtMs) {
       } else {
         // Animação da curva de entrada
         const t = enemy.pathProgress;
-        
+
         // Interpolação linear (Lerp) - garante que chegue no destino exato
         let currentX = enemy.startX + (enemy.targetX - enemy.startX) * t;
         let currentY = enemy.startY + (enemy.targetY - enemy.startY) * t;
@@ -237,11 +250,11 @@ function updateEnemies(state, dt, dtMs) {
         enemy.baseX +
         Math.sin(state.time * ENEMY_SWAY_FREQUENCY + enemy.phase) *
           ENEMY_SWAY_AMPLITUDE;
-          
+
       enemy.y += ENEMY_DESCENT_SPEED * dt;
 
       if (enemy.y > CANVAS_HEIGHT) {
-        enemy.y = -enemy.height; 
+        enemy.y = -enemy.height;
       }
     }
   }
@@ -334,9 +347,9 @@ function updateStatus(state) {
       state.time = 0;
       state.enemies = createEnemies(state.isChallengeStage);
     }
-    return; 
+    return;
   }
-  
+
   if (!state.isChallengeStage && state.enemies.length === 0) {
     if (state.stage + 1 > MAX_STAGE) {
       state.status = 'won';
@@ -344,7 +357,7 @@ function updateStatus(state) {
     }
     state.stage += 1;
     state.isChallengeStage = state.stage % CHALLENGE_STAGE_FREQUENCY === 0;
-    state.time = 0; 
+    state.time = 0;
     state.enemies = createEnemies(state.isChallengeStage);
   }
 }
@@ -353,7 +366,7 @@ function updateStatus(state) {
 
 export function render(ctx, state) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  ctx.imageSmoothingEnabled = false; 
+  ctx.imageSmoothingEnabled = false;
 
   const p = state.player;
   const playerSprite = getSprite('player');

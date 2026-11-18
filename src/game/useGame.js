@@ -3,7 +3,7 @@ import { createInitialState, render, toHudSnapshot, update } from './engine';
 import { createInput } from './entities';
 import { playSound } from './sounds';
 
-const MAX_DT_MS = 50; 
+const MAX_DT_MS = 50;
 
 // Evento do engine -> nome do arquivo de som.
 const EVENT_SOUNDS = {
@@ -32,7 +32,7 @@ function keyToAction(code) {
     case 'Space':
       return 'shoot';
     case 'Escape':
-      return 'pause'; 
+      return 'pause';
     default:
       return null;
   }
@@ -62,7 +62,10 @@ export function useGame({ onHudChange }) {
       prev.lives !== next.lives ||
       prev.status !== next.status ||
       prev.stage !== next.stage ||
-      prev.isChallengeStage !== next.isChallengeStage
+      prev.isChallengeStage !== next.isChallengeStage ||
+      // O cronômetro só atualiza o HUD quando o segundo muda
+      // (evita re-render do React a cada frame).
+      Math.floor(prev.elapsedMs / 1000) !== Math.floor(next.elapsedMs / 1000)
     ) {
       lastHudRef.current = next;
       onHudChangeRef.current(next);
@@ -95,7 +98,7 @@ export function useGame({ onHudChange }) {
     const handleKeyDown = (e) => {
       const action = keyToAction(e.code);
       if (!action) return;
-      e.preventDefault(); 
+      e.preventDefault();
 
       if (action === 'pause') {
         if (e.repeat) return;
@@ -111,13 +114,13 @@ export function useGame({ onHudChange }) {
 
       inputRef.current[action] = true;
     };
-    
+
     const handleKeyUp = (e) => {
       const action = keyToAction(e.code);
       if (!action) return;
       inputRef.current[action] = false;
     };
-    
+
     const handleBlur = () => {
       inputRef.current = createInput();
     };

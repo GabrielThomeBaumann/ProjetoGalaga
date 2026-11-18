@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getSpriteUrl } from '../game/sprites';
+import { formatTime } from '../game/scoring';
 import styles from './HUD.module.css';
 
 function formatScore(value) {
@@ -24,7 +25,7 @@ function LifeIcon() {
   );
 }
 
-export default function HUD({ score, highScore, lives }) {
+export default function HUD({ score, highScore, lives, elapsedMs = 0 }) {
   return (
     <aside className={styles.hud}>
       <div className={styles.block}>
@@ -36,6 +37,11 @@ export default function HUD({ score, highScore, lives }) {
       <div className={styles.block}>
         <div className={styles.label}>1UP</div>
         <div className={styles.value}>{formatScore(score)}</div>
+      </div>
+
+      <div className={styles.block}>
+        <div className={styles.label}>TIME</div>
+        <div className={styles.value}>{formatTime(elapsedMs)}</div>
       </div>
 
       <div className={styles.lives} aria-label={`Vidas: ${lives}`}>

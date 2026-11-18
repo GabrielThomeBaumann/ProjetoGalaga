@@ -17,7 +17,7 @@ export const PLAYER_Y_MARGIN = 20;
 export const PLAYER_LIVES = 3;
 export const PLAYER_SHOOT_COOLDOWN_MS = 400;
 export const PLAYER_HITBOX_WIDTH = 40;
-export const PLAYER_HITBOX_HEIGHT = 30; 
+export const PLAYER_HITBOX_HEIGHT = 30;
 
 // Projéteis
 export const PLAYER_BULLET_WIDTH = 10;
@@ -49,3 +49,9 @@ export const MAX_STAGE = 10;
 export const ENTRY_DURATION_MS = 3500; // Tempo que leva para fazer a curva e entrar na formação
 export const FORMATION_SWAY_SPEED = 1.0; // Velocidade do zigue-zague na formação
 export const FORMATION_DESCENT_SPEED = 5; // Velocidade que a formação desce
+
+// Bônus de vitória
+export const WIN_LIFE_BONUS = 500; // por vida restante
+export const WIN_TIME_BONUS_MAX = 3000; // bônus máximo de tempo
+export const WIN_TIME_FAST_S = 90; // até aqui: bônus máximo
+export const WIN_TIME_SLOW_S = 360; // a partir daqui: bônus zero
