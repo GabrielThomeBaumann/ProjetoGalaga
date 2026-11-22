@@ -129,5 +129,9 @@ export const DUAL_GAP = 4; // px entre as duas naves
 export const DUAL_WIDTH = PLAYER_WIDTH * 2 + DUAL_GAP;
 export const DUAL_HITBOX_WIDTH = PLAYER_HITBOX_WIDTH * 2 + DUAL_GAP;
 export const RESCUE_SPIN_MIN_S = 2.5; // a nave solta rodopia pelo menos isso
+export const RESCUE_MAX_SPIN_S = 8; // limite: depois disso ela se encaixa mesmo com inimigos no ar
 export const RESCUE_SPIN_RATE = 9; // rad/s
 export const RESCUE_DOCK_S = 1.3; // tempo da descida até se encaixar ao lado do jogador
+// true = só resgata se o Boss for abatido fora da formação (como no arcade);
+// abatido na formação, a nave capturada se perde.
+export const RESCUE_ONLY_OUTSIDE_FORMATION = true;
