@@ -89,6 +89,11 @@ export function useGame({ onHudChange }) {
     pushHudIfChanged();
   }, [pushHudIfChanged]);
 
+  // Entrada por toque: liga/desliga 'left' | 'right' | 'shoot'.
+  const setInput = useCallback((action, pressed) => {
+    inputRef.current[action] = pressed;
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
@@ -156,5 +161,5 @@ export function useGame({ onHudChange }) {
     };
   }, [pushHudIfChanged]);
 
-  return { canvasRef, restart, togglePause };
+  return { canvasRef, restart, togglePause, setInput };
 }

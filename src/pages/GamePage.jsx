@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import GameCanvas from '../components/GameCanvas';
 import HUD from '../components/HUD';
 import StarfieldBackground from '../components/StarfieldBackground';
+import TouchControls from '../components/TouchControls';
 import { useAuth } from '../contexts/AuthContext';
 import { usePendingScore } from '../contexts/PendingScoreContext';
 import { PLAYER_LIVES } from '../game/constants';
@@ -69,7 +70,7 @@ export default function GamePage() {
     }
   }, []);
 
-  const { canvasRef, restart, togglePause } = useGame({
+  const { canvasRef, restart, togglePause, setInput } = useGame({
     onHudChange: handleHudChange,
   });
 
@@ -293,6 +294,8 @@ export default function GamePage() {
           elapsedMs={hud.elapsedMs}
         />
       </div>
+
+      <TouchControls onInput={setInput} onPause={togglePause} />
 
       <p className={styles.help}>
         ← → / A D: mover · Espaço: atirar · ESC: Pausar

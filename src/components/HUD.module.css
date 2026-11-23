@@ -51,3 +51,37 @@
   background: var(--accent);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
+
+/* Telas estreitas: o painel vira uma faixa horizontal abaixo do canvas. */
+@media (max-width: 1060px) {
+  .hud {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-left: 1px solid var(--border);
+    border-top: none;
+  }
+
+  .block {
+    gap: 4px;
+  }
+
+  .label {
+    font-size: 10px;
+  }
+
+  .value {
+    margin-top: 4px;
+    font-size: 10px;
+    text-align: left;
+  }
+
+  .lifeIcon,
+  .lifeFallback {
+    width: 24px;
+    height: 18px;
+  }
+}

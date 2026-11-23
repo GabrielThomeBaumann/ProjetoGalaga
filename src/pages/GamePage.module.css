@@ -2,6 +2,7 @@
 .page {
   position: relative;
   z-index: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -14,6 +15,7 @@
   z-index: 1;
   display: flex;
   align-items: stretch;
+  max-width: 100%;
 }
 
 .overlay {
@@ -119,7 +121,7 @@
 .stageText {
   color: var(--accent);
   font-family: inherit;
-  font-size: 2rem;
+  font-size: clamp(1rem, 4.5vw, 2rem);
   letter-spacing: 4px;
   text-transform: uppercase;
   font-weight: normal;
@@ -151,4 +153,58 @@
   color: var(--muted);
   font-size: 10px;
   line-height: 1.6;
+}
+
+/* ---------- Mobile ---------- */
+
+/* Canvas em cima, HUD embaixo (o HUD já vira faixa horizontal). */
+@media (max-width: 1060px) {
+  .layout {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Canvas pequeno: reduz os textos das telas de pausa/vitória/derrota. */
+@media (max-width: 600px) {
+  .overlay {
+    gap: 6px;
+  }
+
+  .overlay h2 {
+    font-size: 14px;
+  }
+
+  .overlay p {
+    font-size: 8px;
+    line-height: 1.4;
+  }
+
+  .overlay .saveMessage {
+    max-width: 90%;
+    padding: 0 8px;
+  }
+
+  .menu {
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .item {
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .arrow {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Em aparelhos de toque não há teclado: esconde a ajuda de teclas. */
+@media (pointer: coarse) {
+  .help {
+    display: none;
+  }
 }
