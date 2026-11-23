@@ -1,17 +1,21 @@
 // Imagens do jogo.
 // Coloque os arquivos em src/assets/sprites/ com estes nomes (qualquer extensão:
 // png, jpg, jpeg, webp, gif ou svg):
-//   player.png        -> nave do jogador
-//   enemy.png         -> inimigo
-//   player-bullet.png -> tiro do jogador
-//   enemy-bullet.png  -> tiro do inimigo
+//   player.png          -> nave do jogador
+//   enemy-bee.png       -> inimigo abelha
+//   enemy-butterfly.png -> inimigo borboleta
+//   enemy-boss.png      -> Boss Galaga
+//   player-bullet.png   -> tiro do jogador
+//   enemy-bullet.png    -> tiro do inimigo
 //
 // Versões opcionais para o TEMA CLARO (mesmo nome + "-light"):
-//   player-light.png, enemy-light.png, player-bullet-light.png, enemy-bullet-light.png
+//   player-light.png, enemy-bee-light.png, enemy-butterfly-light.png,
+//   enemy-boss-light.png, player-bullet-light.png, enemy-bullet-light.png
 // No tema claro, se a versão "-light" existir, ela é usada no lugar da normal.
 //
 // Se não achar nada em src/assets/sprites/, tenta public/images/<nome>.png.
-// Se nenhum existir, o jogo desenha o triângulo antigo.
+// Se nenhum existir, o jogo desenha as formas vetoriais (inimigos) ou o
+// triângulo (nave).
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -48,11 +52,21 @@ function load(name, { optional = false } = {}) {
   sprites[name] = img;
 }
 
-const BASE_NAMES = ['player', 'enemy', 'player-bullet', 'enemy-bullet'];
+const BASE_NAMES = [
+  'player',
+  'enemy-bee',
+  'enemy-butterfly',
+  'enemy-boss',
+  'player-bullet',
+  'enemy-bullet',
+];
+
+// Sprites que o jogo funciona sem (têm desenho vetorial de reserva): não avisam se faltarem.
+const OPTIONAL_BASE = new Set(['enemy-bee', 'enemy-butterfly', 'enemy-boss']);
 
 if (typeof Image !== 'undefined') {
   for (const name of BASE_NAMES) {
-    load(name);
+    load(name, { optional: OPTIONAL_BASE.has(name) });
     load(`${name}-light`, { optional: true }); // opcional: sem aviso se faltar
   }
 }
@@ -77,7 +91,7 @@ export function getSprite(name) {
 /** URL da imagem (para usar em <img>), mesmo antes de ela terminar de carregar. */
 export function getSpriteUrl(name) {
   const lightName = `${name}-light`;
-  // No tema claro, usa a versão escura se ela existir (na pasta de sprites ou já carregada).
+  // No tema claro, usa a versão "-light" se ela existir (na pasta de sprites ou já carregada).
   if (isLightTheme() && (findAsset(lightName) || ready[lightName])) {
     return sprites[lightName]?.src ?? null;
   }

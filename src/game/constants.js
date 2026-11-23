@@ -43,7 +43,7 @@ export const ENEMY_KILL_SCORE = 10;
 
 // Controle de Fases
 export const CHALLENGE_STAGE_FREQUENCY = 3; // A cada 3 fases, uma é Challenge
-export const MAX_STAGE = 10;
+export const MAX_STAGE = 6;
 
 // Controle de Entrada (Acrobacias)
 export const ENTRY_DURATION_MS = 3500; // Tempo que leva para fazer a curva e entrar na formação
