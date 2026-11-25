@@ -44,3 +44,13 @@ body {
   color: var(--fg);
   font-family: 'Courier New', ui-monospace, monospace;
 }
+
+/* Evita "puxar para atualizar" e zoom por duplo toque enquanto joga. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
+button {
+  touch-action: manipulation;
+}

@@ -85,3 +85,30 @@
     height: 18px;
   }
 }
+
+/* Celular deitado: HUD compacto flutuando no canto superior esquerdo. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .hud {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 20;
+    width: auto;
+    flex-direction: column;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    background: var(--overlay-bg);
+  }
+
+  .label,
+  .value {
+    font-size: 8px;
+  }
+
+  .lifeIcon,
+  .lifeFallback {
+    width: 18px;
+    height: 14px;
+  }
+}

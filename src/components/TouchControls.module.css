@@ -22,9 +22,13 @@
 .move {
   display: flex;
   gap: 12px;
+  touch-action: none;
 }
 
 .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 72px;
   height: 72px;
   padding: 0;
@@ -53,4 +57,54 @@
   width: 48px;
   height: 48px;
   font-size: 14px;
+}
+
+/* Celular deitado: controles flutuam nos cantos, por cima da tela. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .controls {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .controls > * {
+    pointer-events: auto;
+  }
+
+  .move {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .fire {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .small {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+
+  .btn {
+    width: 60px;
+    height: 60px;
+    opacity: 0.6;
+  }
+
+  .fire {
+    width: 84px;
+  }
+
+  .small {
+    width: 40px;
+    height: 40px;
+  }
 }

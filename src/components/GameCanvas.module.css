@@ -1,11 +1,18 @@
-/* Tamanho máximo 800x600; em telas menores encolhe mantendo 4:3.
-   A resolução interna do canvas continua 800x600 (o engine não muda). */
+/* Máximo 800x600. O tamanho também é limitado pela ALTURA da tela, para o
+   canvas nunca ficar maior que o que cabe (resolução interna continua 800x600). */
 .wrapper {
   position: relative;
-  width: 800px;
-  max-width: 100%;
-  height: auto;
+  width: min(800px, 100%, calc((100vh - 230px) * 4 / 3));
+  width: min(800px, 100%, calc((100dvh - 230px) * 4 / 3));
   aspect-ratio: 4 / 3;
+}
+
+/* Celular deitado: o canvas ocupa quase toda a altura. */
+@media (pointer: coarse) and (orientation: landscape) {
+  .wrapper {
+    width: min(800px, calc((100vh - 40px) * 4 / 3));
+    width: min(800px, calc((100dvh - 40px) * 4 / 3));
+  }
 }
 
 /* Transparente: o fundo de estrelas (StarfieldBackground) aparece atrás. */

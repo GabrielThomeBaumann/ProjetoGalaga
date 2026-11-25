@@ -38,7 +38,15 @@
   padding: 16px;
 }
 
-/* Sem navbar: o conteúdo (menu ou jogo) fica centralizado na altura da tela. */
+/* Sem navbar: o conteúdo (menu ou jogo) fica centralizado na altura da tela.
+   "safe" evita cortar o topo quando o conteúdo é maior que a tela. */
 .mainCentered {
   justify-content: center;
+  justify-content: safe center;
+}
+
+@media (pointer: coarse) {
+  .main {
+    padding: 6px;
+  }
 }
