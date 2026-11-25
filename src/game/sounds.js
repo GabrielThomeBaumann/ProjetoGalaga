@@ -1,11 +1,11 @@
 // Efeitos sonoros (Web Audio API).
 // Coloque os arquivos em src/assets/sounds/ (wav, mp3 ou ogg):
-//   game-start, enemy-kill, death
+//   game-start, enemy-kill, death, shoot
 // Se um arquivo não existir, playSound() simplesmente não faz nada.
 
 const STORAGE_KEY = 'galaga-volume';
 const DEFAULT_VOLUME = 0.7;
-const SOUND_NAMES = ['game-start', 'enemy-kill', 'death'];
+const SOUND_NAMES = ['game-start', 'enemy-kill', 'death', 'shoot'];
 
 const files = import.meta.glob('../assets/sounds/*.{wav,mp3,ogg}', {
   eager: true,

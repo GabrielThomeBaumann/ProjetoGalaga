@@ -404,6 +404,8 @@ function updatePlayer(state, input, dt, nowMs) {
         }),
       );
     }
+    // Um único som por disparo (mesmo com nave dupla).
+    state.events.push('shoot');
   }
 }
 

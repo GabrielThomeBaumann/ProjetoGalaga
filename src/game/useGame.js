@@ -10,6 +10,7 @@ const EVENT_SOUNDS = {
   gameStart: 'game-start',
   enemyKill: 'enemy-kill',
   death: 'death',
+  shoot: 'shoot',
 };
 
 // Toca os sons dos eventos do frame e esvazia a fila.
@@ -89,11 +90,6 @@ export function useGame({ onHudChange }) {
     pushHudIfChanged();
   }, [pushHudIfChanged]);
 
-  // Entrada por toque: liga/desliga 'left' | 'right' | 'shoot'.
-  const setInput = useCallback((action, pressed) => {
-    inputRef.current[action] = pressed;
-  }, []);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
@@ -161,5 +157,5 @@ export function useGame({ onHudChange }) {
     };
   }, [pushHudIfChanged]);
 
-  return { canvasRef, restart, togglePause, setInput };
+  return { canvasRef, restart, togglePause };
 }
